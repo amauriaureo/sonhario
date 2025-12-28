@@ -4,11 +4,12 @@ const db = require("./db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken"); // Importa o JWT
 require("dotenv").config();
-
+const morgan = require("morgan");
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(morgan("dev"));
 app.use(express.json());
 
 // Rota de Teste
@@ -86,6 +87,10 @@ app.post("/usuarios/login", async (req, res) => {
     res.status(500).json({ error: "Erro interno no servidor" });
   }
 });
+
+// Rotas
+const registrosRoutes = require("./routes/registros");
+app.use("/registros", registrosRoutes);
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);

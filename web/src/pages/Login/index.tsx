@@ -45,7 +45,6 @@ function Login() {
       <div className="auth-wrapper">
         <Container>
           <Row className="justify-content-center">
-            <Col xs={12} sm={12} md={12} lg={12} xl={12}>
               <div className="logo-container">
                 {/* Adicione sua logo na pasta /public e referencie aqui */}
                 <img src="/logo.png" alt="Logo Sonhário" />
@@ -72,7 +71,6 @@ function Login() {
                   </div>
                 </CardBody>
               </Card>
-            </Col>
           </Row>
         </Container>
       </div>

@@ -1,7 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
-import Dashboard from '../pages/Dashboard';
+import RegistrosPage from '../pages/Registros';
 import ProtectedRoute from './ProtectedRoute';
 
 export function AppRoutes() {
@@ -13,9 +13,10 @@ export function AppRoutes() {
 
       {/* Rotas Protegidas */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Redirecionamos o dashboard direto para os registros agora */}
+        <Route path="/dashboard" element={<Navigate to="/registros" />} />
+        <Route path="/registros" element={<RegistrosPage />} />
       </Route>
     </Routes>
   );
 }
-
