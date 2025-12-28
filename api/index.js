@@ -31,3 +31,31 @@ app.get("/usuarios", async (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
+
+const bcrypt = require("bcrypt");
+const saltRounds = 10; // Nível de complexidade da criptografia
+
+// Rota para Cadastrar Novo Usuário com Senha Criptografada
+app.post("/usuarios/registrar", async (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  try {
+    // 1. Gera o Hash da senha (segurança)
+    const hashSenha = await bcrypt.hash(senha, saltRounds);
+
+    // 2. Insere no banco com a senha protegida
+    const query =
+      "INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id, nome, email";
+    const values = [nome, email, hashSenha];
+
+    const result = await db.query(query, values);
+
+    res.status(201).json({
+      message: "Usuário criado com sucesso!",
+      usuario: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Erro ao registrar:", err.message);
+    res.status(500).json({ error: "Erro ao criar conta. Email já existe?" });
+  }
+});
