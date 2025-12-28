@@ -1,0 +1,19 @@
+/* No arquivo web/src/styles/Auth.css, adicione/ajuste estas linhas: */
+.auth-container {
+  min-height: 100vh;
+  width: 100vw; /* Garante largura total */
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f7f6;
+}
+
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%; /* Remove qualquer restrição */
+  padding: 1rem;
+}
