@@ -51,7 +51,7 @@ function Dashboard() {
 
   return (
     <div className="bg-dark text-white py-3 mb-4 shadow">
-      <Container>
+      <Container fluid>
         <Row className="align-items-center">
           <Col md={4}>
             <h4 className="mb-0">Olá, <strong>{usuario.nome}</strong></h4>

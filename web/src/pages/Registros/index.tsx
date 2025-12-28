@@ -74,7 +74,7 @@ function RegistrosPage() {
   return (
     <>
       <Dashboard />
-      <Container>
+      <Container fluid className="px-md-5">
         {erro && <Alert color="danger">{erro}</Alert>}
         <Row>
           {/* Lado Esquerdo - Lista */}
