@@ -6,6 +6,7 @@ import {
   Alert, Spinner 
 } from 'reactstrap';
 import api from '../../services/api';
+import '../../styles/Auth.css'; // Importa o CSS
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -20,14 +21,15 @@ function Login() {
     setMensagem({ texto: '', cor: '' });
 
     try {
-      // A rota de login ainda será implementada no backend
-      // const response = await api.post('/login', { email, senha });
-      console.log('Login attempt with:', { email, senha });
-      setMensagem({ texto: 'Login realizado com sucesso! (Funcionalidade em desenvolvimento)', cor: 'success' });
+      const response = await api.post('/usuarios/login', { email, senha });
+      const { token, usuario } = response.data;
       
-      // Exemplo de como redirecionar após o login
-      // navigate('/dashboard'); 
+      // Armazena os dados no localStorage para manter a sessão
+      localStorage.setItem('token', token);
+      localStorage.setItem('usuario', JSON.stringify(usuario));
 
+      // Redireciona para o dashboard
+      navigate('/dashboard'); 
     } catch (err: any) {
       setMensagem({ 
         texto: err.response?.data?.error || 'Erro ao fazer login.', 
@@ -39,38 +41,46 @@ function Login() {
   };
 
   return (
-    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Row className="justify-content-center w-100">
-        <Col md={5}>
-          <Card className="shadow">
-            <CardBody>
-              <h2 className="text-center mb-4 text-primary">Login no Sonhário</h2>
-              {mensagem.texto && <Alert color={mensagem.cor}>{mensagem.texto}</Alert>}
-              
-              <Form onSubmit={handleLogin}>
-                <FormGroup>
-                  <Label>E-mail</Label>
-                  <Input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-                </FormGroup>
-                <FormGroup>
-                  <Label>Senha</Label>
-                  <Input type="password" value={senha} onChange={e => setSenha(e.target.value)} required />
-                </FormGroup>
-                <Button color="primary" block disabled={carregando}>
-                  {carregando ? <Spinner size="sm" /> : 'Entrar'}
-                </Button>
-              </Form>
-
-              <div className="text-center mt-3">
-                <p>Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link></p>
+    <div className="auth-container">
+      <div className="auth-wrapper">
+        <Container>
+          <Row className="justify-content-center">
+            <Col xs={12} sm={12} md={12} lg={12} xl={12}>
+              <div className="logo-container">
+                {/* Adicione sua logo na pasta /public e referencie aqui */}
+                <img src="/logo.png" alt="Logo Sonhário" />
               </div>
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+              <Card className="auth-card shadow">
+                <CardBody className="p-4 p-md-5">
+                  <h4 className="text-center mb-4">Seja Bem-Vindo!</h4>
+                  {mensagem.texto && <Alert color={mensagem.cor} className="mt-3">{mensagem.texto}</Alert>}
+                  <Form onSubmit={handleLogin}>
+                    <FormGroup>
+                      <Label for="email">E-mail</Label>
+                      <Input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                    </FormGroup>
+                    <FormGroup>
+                      <Label for="senha">Senha</Label>
+                      <Input type="password" id="senha" value={senha} onChange={e => setSenha(e.target.value)} required />
+                    </FormGroup>
+                    <Button color="dark" block disabled={carregando} className="mt-4">
+                      {carregando ? <Spinner size="sm" /> : 'Entrar'}
+                    </Button>
+                  </Form>
+                  <div className="text-center mt-4">
+                    <Link to="/cadastro">Não tem uma conta? Cadastre-se</Link>
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <div className="auth-footer">
+        <p>&copy; 2025 Sonhário. Feito com ❤️.</p>
+      </div>
+    </div>
   );
 }
 
 export default Login;
-
