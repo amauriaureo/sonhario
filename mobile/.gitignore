@@ -1,0 +1,28 @@
+# Arquivos de configuração de ambiente (NÃO ENVIAR)
+.env
+.env.*
+!.env.example
+
+# Pasta do Expo que armazena cache e configurações locais
+.expo/
+
+# Dependências
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Pastas de build do Android e iOS
+/android/build/
+/android/app/build/
+/android/.gradle/
+/ios/build/
+/ios/Pods/
+
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+
+# Arquivos de configuração de editores de código
+.idea/
+
