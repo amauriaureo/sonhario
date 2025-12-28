@@ -1,36 +1,47 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Container, Row, Col, Card, CardBody, 
   Form, FormGroup, Label, Input, Button, 
   Alert, Spinner 
 } from 'reactstrap';
+import api from '../../services/api';
 
-export function LoginPage() {
+function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [mensagem, setMensagem] = useState({ texto: '', cor: '' });
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCarregando(true);
     setMensagem({ texto: '', cor: '' });
 
-    // Lógica de login será implementada aqui no futuro
-    console.log('Tentativa de login com:', { email, senha });
-    
-    // Simulação de chamada de API
-    setTimeout(() => {
-      setMensagem({ texto: 'Funcionalidade de login ainda não implementada.', cor: 'info' });
+    try {
+      // A rota de login ainda será implementada no backend
+      // const response = await api.post('/login', { email, senha });
+      console.log('Login attempt with:', { email, senha });
+      setMensagem({ texto: 'Login realizado com sucesso! (Funcionalidade em desenvolvimento)', cor: 'success' });
+      
+      // Exemplo de como redirecionar após o login
+      // navigate('/dashboard'); 
+
+    } catch (err: any) {
+      setMensagem({ 
+        texto: err.response?.data?.error || 'Erro ao fazer login.', 
+        cor: 'danger' 
+      });
+    } finally {
       setCarregando(false);
-    }, 1500);
+    }
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Row className="w-100">
-        <Col md={6} lg={4} className="mx-auto">
+    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+      <Row className="justify-content-center w-100">
+        <Col md={5}>
           <Card className="shadow">
             <CardBody>
               <h2 className="text-center mb-4 text-primary">Login no Sonhário</h2>
@@ -51,7 +62,7 @@ export function LoginPage() {
               </Form>
 
               <div className="text-center mt-3">
-                <Link to="/cadastro">Não tem uma conta? Cadastre-se</Link>
+                <p>Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link></p>
               </div>
             </CardBody>
           </Card>
@@ -60,4 +71,6 @@ export function LoginPage() {
     </Container>
   );
 }
+
+export default Login;
 

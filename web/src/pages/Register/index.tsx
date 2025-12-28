@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Container, Row, Col, Card, CardBody, 
   Form, FormGroup, Label, Input, Button, 
   Table, Alert, Spinner 
 } from 'reactstrap';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 
 interface Usuario {
@@ -13,7 +13,7 @@ interface Usuario {
   email: string;
 }
 
-export function CadastroPage() {
+function Register() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -82,7 +82,7 @@ export function CadastroPage() {
                 </Button>
               </Form>
               <div className="text-center mt-3">
-                <Link to="/">Já tem uma conta? Faça login</Link>
+                <Link to="/">Voltar para o Login</Link>
               </div>
             </CardBody>
           </Card>
@@ -113,4 +113,6 @@ export function CadastroPage() {
     </Container>
   );
 }
+
+export default Register;
 
