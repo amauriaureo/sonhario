@@ -1,2 +1,119 @@
-/* Os estilos conflitantes foram removidos.
-   Este arquivo pode ser usado para estilos globais do App no futuro. */
+/* Tema marrom + bege minimalista e lúdico — usa variáveis em :root */
+
+/* Botões principais */
+.btn-primary {
+  background-color: var(--marrom-medio);
+  border-color: var(--marrom-medio);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #73452c;
+  border-color: #73452c;
+}
+.outsiderBrasil {
+  background: linear-gradient(to right, var(--marrom-escuro) 0%, var(--marrom-escuro) 85%, var(--bg-bege) 100%) !important;
+  color: #fffaf7 !important; /* Texto claro para contrastar com o marrom predominante */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Botões principais - agora usando o mesmo marrom do início do degradê */
+.btn-primary {
+  background-color: var(--marrom-escuro);
+  border-color: var(--marrom-escuro);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #4a342a; /* Um tom ainda mais escuro para o hover */
+  border-color: #4a342a;
+}
+
+/* Botão dark para ações */
+.btn-dark {
+  background-color: var(--marrom-escuro);
+  border-color: var(--marrom-escuro);
+}
+.btn-dark:hover,
+.btn-dark:focus {
+  background-color: #2f231e;
+  border-color: #2f231e;
+}
+
+/* Botão outline light no header */
+.btn-outline-light {
+  color: var(--bg-bege);
+  border-color: var(--bg-bege);
+}
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+  color: var(--marrom-escuro);
+  background-color: var(--bg-bege);
+  border-color: var(--bg-bege);
+}
+
+/* Cards */
+.card {
+  background-color: var(--bg-bege-claro);
+  border: none;
+  box-shadow: 0 10px 24px rgba(58, 43, 37, 0.1);
+}
+
+/* Cabeçalho (sobrescrevendo bg-dark para tom terroso) */
+.bg-dark {
+  background: linear-gradient(135deg, var(--marrom-escuro), var(--marrom-areia)) !important;
+}
+
+/* Estilos para a lista de registros */
+.list-group-item.active {
+  background-color: var(--marrom-medio) !important;
+  border-color: var(--marrom-medio) !important;
+}
+
+.list-group-item {
+  background-color: var(--bg-bege-claro) !important;
+  color: var(--marrom-escuro) !important;
+  transition: all 0.2s ease;
+  border: 1px solid #e8dec9 !important;
+  margin-bottom: 8px !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important; /* Fonte menor na lista */
+}
+
+.list-group-item:hover:not(.active) {
+  background-color: var(--marrom-medio) !important; /* Hoover marrom */
+  color: #ffffff !important; /* Texto branco no hoover */
+  cursor: pointer;
+}
+
+.list-group-item:hover:not(.active) small,
+.list-group-item:hover:not(.active) p {
+  color: #ffffff !important;
+}
+
+/* Botão redondo perfeito */
+.btn-round {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border-radius: 50% !important;
+}
+
+/* Customização do Editor */
+.registro-textarea {
+  background-color: #fdfaf5 !important;
+  color: var(--marrom-escuro) !important;
+  border: 1px solid #e8dec9 !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+}
+
+.registro-textarea:focus {
+  box-shadow: 0 0 0 0.2rem rgba(139, 90, 60, 0.15) !important;
+  border-color: var(--marrom-claro) !important;
+  background-color: #ffffff !important;
+}

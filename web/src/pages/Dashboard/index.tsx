@@ -92,21 +92,27 @@ function Dashboard() {
   if (!usuario) return null;
 
   return (
-    <div className="bg-dark text-white py-3 mb-4 shadow">
+    <div className="py-3 outsiderBrasil mb-4 shadow-sm">
       <Container fluid>
         <Row className="align-items-center">
           <Col md={4}>
-            <h4 className="mb-0">Olá, <strong>{usuario.nome}</strong></h4>
+            <h4 className="mb-0 font-weight-bold">Olá, {usuario.nome}</h4>
           </Col>
-          <Col md={5} className="text-center d-flex justify-content-around">
-            <div>
-              <span className="h6">o sonho é um fenômeno contínuo entre vigília, sono e emoção</span>
-            </div>
+          <Col md={5} className="text-center">
+            <span className="font-italic" style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+              "o sonho é um fenômeno contínuo entre vigília, sono e emoção"
+            </span>
           </Col>
           <Col md={3} className="text-end">
-          <Button color="light" size="sm" className="me-2" disabled={true}>{resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'oi'}</Button>
-          <Button color="outline-light" size="sm" className="me-2" onClick={toggleModal}>Alterar senha</Button>
-            <Button color="outline-light" size="sm" onClick={handleLogout}>Sair</Button>
+            <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
+              {resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'Sem atividade'}
+            </Button>
+            <Button color="dark" size="sm" className="me-2" onClick={toggleModal}>
+              Alterar senha
+            </Button>
+            <Button color="dark" size="sm" onClick={handleLogout}>
+              Sair
+            </Button>
           </Col>
         </Row>
       </Container>

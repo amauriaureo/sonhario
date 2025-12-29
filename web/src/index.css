@@ -1,17 +1,27 @@
-/* Substitua o conteúdo de web/src/index.css por este: */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Tons de Bege */
+  --bg-bege: #f7f1e9;        /* Fundo geral da página */
+  --bg-bege-claro: #fffaf7;  /* Fundo dos cards (mais claro que o geral) */
+  
+  /* Tons de Marrom */
+  --marrom-escuro: #5c4033;  /* Texto principal e início do degradê */
+  --marrom-medio: #8b5a3c;   /* Botões principais */
+  --marrom-claro: #c18b6a;   /* Hover e detalhes secundários */
+  --marrom-areia: #d8c5ad;   /* Final do degradê do cabeçalho */
+
+  font-family: "Inter", "Source Sans Pro", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  background-color: #f4f7f6; /* Fundo padrão para o dashboard */
+  background-color: var(--bg-bege);
+  color: var(--marrom-escuro);
 }
 
 body {
   margin: 0;
   min-width: 100vw;
   min-height: 100vh;
+  background-color: var(--bg-bege);
+  color: var(--marrom-escuro);
 }
 
 #root {
@@ -19,7 +29,16 @@ body {
   min-height: 100vh;
 }
 
-/* Garante que o Bootstrap Container ocupe mais espaço em telas grandes */
+a {
+  color: #b0724a;
+  text-decoration: none;
+}
+a:hover {
+  color: #8c5838;
+  text-decoration: underline;
+}
+
+/* Containers mais amplos em desktop */
 @media (min-width: 1200px) {
   .container {
     max-width: 95% !important;
