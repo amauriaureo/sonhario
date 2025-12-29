@@ -1,19 +1,88 @@
-/* No arquivo web/src/styles/Auth.css, adicione/ajuste estas linhas: */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6; /* Cor de fundo cinza claro */
+}
+
+/* Container principal para as páginas de autenticação */
 .auth-container {
   min-height: 100vh;
   width: 100vw; /* Garante largura total */
   position: relative;
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   background-color: #f4f7f6;
+  padding: 1.5rem 0;
 }
 
+/* Pseudo-elemento para criar a forma geométrica escura no topo */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150%;
+  height: 60vh;
+  background-color: #212529;
+  transform: rotate(-8deg) translate(-15%, -30%);
+  z-index: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Wrapper para o conteúdo da autenticação */
 .auth-wrapper {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 100%; /* Remove qualquer restrição */
+  max-width: 800px;
   padding: 1rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Container para a logo */
+.logo-container {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.logo-container img {
+  max-width: 150px;
+  background-color: #2a2e34;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para o cartão de autenticação */
+.auth-card {
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Rodapé */
+.auth-footer {
+  position: static;
+  margin-top: 1rem;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.8rem;
+  z-index: 1;
+  width: 100%;
+}
+
+@media (max-width: 576px) {
+  .logo-container img {
+    max-width: 120px;
+    padding: 1.1rem;
+  }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
+import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner } from 'reactstrap';
 import api from '../../services/api';
 
 interface Usuario {
@@ -15,6 +15,12 @@ interface Resumo {
 function Dashboard() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [resumo, setResumo] = useState<Resumo>({ total: 0, ultimaAtividade: null });
+  const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [alterando, setAlterando] = useState(false);
+  const [mensagem, setMensagem] = useState<{ texto: string; cor: string }>({ texto: '', cor: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +53,42 @@ function Dashboard() {
     navigate('/');
   };
 
+  const toggleModal = () => {
+    setMensagem({ texto: '', cor: '' });
+    setModalSenhaAberto(!modalSenhaAberto);
+    if (!modalSenhaAberto) {
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+    }
+  };
+
+  const handleAlterarSenha = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (novaSenha !== confirmarSenha) {
+      setMensagem({ texto: 'Nova senha e confirmação não conferem.', cor: 'danger' });
+      return;
+    }
+    setAlterando(true);
+    setMensagem({ texto: '', cor: '' });
+    try {
+      await api.post('/usuarios/alterar-senha', { senhaAtual, novaSenha }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setMensagem({ texto: 'Senha alterada com sucesso.', cor: 'success' });
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+    } catch (err: any) {
+      setMensagem({
+        texto: err.response?.data?.error || 'Erro ao alterar a senha.',
+        cor: 'danger'
+      });
+    } finally {
+      setAlterando(false);
+    }
+  };
+
   if (!usuario) return null;
 
   return (
@@ -69,10 +111,56 @@ function Dashboard() {
             )}
           </Col>
           <Col md={3} className="text-end">
+            <Button color="outline-light" size="sm" className="me-2" onClick={toggleModal}>Alterar senha</Button>
             <Button color="outline-light" size="sm" onClick={handleLogout}>Sair</Button>
           </Col>
         </Row>
       </Container>
+
+      <Modal isOpen={modalSenhaAberto} toggle={toggleModal}>
+        <ModalHeader toggle={toggleModal}>Alterar senha</ModalHeader>
+        <Form onSubmit={handleAlterarSenha}>
+          <ModalBody>
+            {mensagem.texto && <Alert color={mensagem.cor}>{mensagem.texto}</Alert>}
+            <FormGroup>
+              <Label for="senhaAtual">Senha atual</Label>
+              <Input
+                id="senhaAtual"
+                type="password"
+                value={senhaAtual}
+                onChange={e => setSenhaAtual(e.target.value)}
+                required
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="novaSenha">Nova senha</Label>
+              <Input
+                id="novaSenha"
+                type="password"
+                value={novaSenha}
+                onChange={e => setNovaSenha(e.target.value)}
+                required
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="confirmarSenha">Confirmar nova senha</Label>
+              <Input
+                id="confirmarSenha"
+                type="password"
+                value={confirmarSenha}
+                onChange={e => setConfirmarSenha(e.target.value)}
+                required
+              />
+            </FormGroup>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={toggleModal} disabled={alterando}>Cancelar</Button>
+            <Button color="primary" type="submit" disabled={alterando}>
+              {alterando ? <Spinner size="sm" /> : 'Salvar'}
+            </Button>
+          </ModalFooter>
+        </Form>
+      </Modal>
     </div>
   );
 }

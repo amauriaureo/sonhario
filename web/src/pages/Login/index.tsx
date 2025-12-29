@@ -7,11 +7,12 @@ import {
 } from 'reactstrap';
 import api from '../../services/api';
 import '../../styles/Auth.css'; // Importa o CSS
-
+import logo from '../../assets/logo-sonhario.jpeg';
 function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [recuperando, setRecuperando] = useState(false);
   const [mensagem, setMensagem] = useState({ texto: '', cor: '' });
   const navigate = useNavigate();
 
@@ -40,14 +41,35 @@ function Login() {
     }
   };
 
+  const handleEsqueciSenha = async () => {
+    if (!email) {
+      setMensagem({ texto: 'Informe seu e-mail para recuperar a senha.', cor: 'warning' });
+      return;
+    }
+    setRecuperando(true);
+    setMensagem({ texto: '', cor: '' });
+    try {
+      const response = await api.post('/usuarios/esqueci-senha', { email });
+      setMensagem({ texto: response.data?.message || 'Nova senha enviada para seu e-mail.', cor: 'success' });
+    } catch (err: any) {
+      setMensagem({ 
+        texto: err.response?.data?.error || 'Erro ao processar recuperação de senha.', 
+        cor: 'danger' 
+      });
+    } finally {
+      setRecuperando(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-wrapper">
         <Container>
           <Row className="justify-content-center">
+            <Col xs={12} sm={10} md={8} lg={6}>
               <div className="logo-container">
                 {/* Adicione sua logo na pasta /public e referencie aqui */}
-                <img src="/logo.png" alt="Logo Sonhário" />
+                <img src={logo} alt="Logo Sonhário" />
               </div>
               <Card className="auth-card shadow">
                 <CardBody className="p-4 p-md-5">
@@ -58,11 +80,23 @@ function Login() {
                       <Label for="email">E-mail</Label>
                       <Input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required />
                     </FormGroup>
+                    
                     <FormGroup>
                       <Label for="senha">Senha</Label>
                       <Input type="password" id="senha" value={senha} onChange={e => setSenha(e.target.value)} required />
+                      <div className="text-center mt-1">
+                        <Button 
+                          color="link" 
+                          size="sm" 
+                          className="p-0" 
+                          disabled={recuperando}
+                          onClick={handleEsqueciSenha}
+                        >
+                          {recuperando ? 'Enviando...' : 'Esqueci minha senha'}
+                        </Button>
+                      </div>
                     </FormGroup>
-                    <Button color="dark" block disabled={carregando} className="mt-4">
+                    <Button color="dark" block disabled={carregando || recuperando} className="mt-4">
                       {carregando ? <Spinner size="sm" /> : 'Entrar'}
                     </Button>
                   </Form>
@@ -71,6 +105,7 @@ function Login() {
                   </div>
                 </CardBody>
               </Card>
+            </Col>
           </Row>
         </Container>
       </div>
