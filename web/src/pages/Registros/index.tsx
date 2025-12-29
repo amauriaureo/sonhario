@@ -115,7 +115,7 @@ function RegistrosPage() {
             <Card className="shadow-sm border-0" style={{ minHeight: '400px' }}>
               <CardBody className="d-flex flex-column">
                 <div className="mb-3">
-                  <h5>{registroSelecionado ? 'Editando Registro' : 'Novo Registro'}</h5>
+                  <h6>{registroSelecionado ? 'Editando Registro' : 'Registre seu estado mental ao redor do sonho'}</h6>
                   {registroSelecionado && (
                     <small className="text-muted">
                       Criado em: {format(new Date(registroSelecionado.criado_em), "Pp", { locale: ptBR })}

@@ -100,18 +100,12 @@ function Dashboard() {
           </Col>
           <Col md={5} className="text-center d-flex justify-content-around">
             <div>
-              <small className="d-block text-muted text-uppercase">Total de Registros</small>
-              <span className="h5">{resumo.total}</span>
+              <span className="h6">o sonho é um fenômeno contínuo entre vigília, sono e emoção</span>
             </div>
-            {resumo.ultimaAtividade && (
-              <div>
-                <small className="d-block text-muted text-uppercase">Última Atividade</small>
-                <span className="h6">{new Date(resumo.ultimaAtividade).toLocaleDateString()}</span>
-              </div>
-            )}
           </Col>
           <Col md={3} className="text-end">
-            <Button color="outline-light" size="sm" className="me-2" onClick={toggleModal}>Alterar senha</Button>
+          <Button color="light" size="sm" className="me-2" disabled={true}>{resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'oi'}</Button>
+          <Button color="outline-light" size="sm" className="me-2" onClick={toggleModal}>Alterar senha</Button>
             <Button color="outline-light" size="sm" onClick={handleLogout}>Sair</Button>
           </Col>
         </Row>
