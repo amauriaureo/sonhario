@@ -5,9 +5,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken"); // Importa o JWT
 require("dotenv").config();
 const morgan = require("morgan");
+const { enviarEmailReset } = require("./mailer");
+const verificarToken = require("./middleware/verificarToken");
 const app = express();
 const port = process.env.PORT || 3000;
-const { enviarEmailReset } = require("./mailer");
 
 app.use(cors());
 app.use(morgan("dev"));
@@ -140,6 +141,43 @@ app.post("/usuarios/esqueci-senha", async (req, res) => {
     });
   } catch (err) {
     console.error("Erro no reset de senha:", err.message);
+    res.status(500).json({ error: "Erro interno no servidor" });
+  }
+});
+
+// Rota de Alteração de Senha (autenticada)
+app.post("/usuarios/alterar-senha", verificarToken, async (req, res) => {
+  const { senhaAtual, novaSenha } = req.body;
+
+  if (!senhaAtual || !novaSenha) {
+    return res
+      .status(400)
+      .json({ error: "Senha atual e nova senha são obrigatórias." });
+  }
+
+  try {
+    const userQuery = "SELECT * FROM usuarios WHERE id = $1";
+    const result = await db.query(userQuery, [req.usuario.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const usuario = result.rows[0];
+    const senhaValida = await bcrypt.compare(senhaAtual, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: "Senha atual incorreta." });
+    }
+
+    const hashSenha = await bcrypt.hash(novaSenha, 10);
+    await db.query("UPDATE usuarios SET senha = $1 WHERE id = $2", [
+      hashSenha,
+      usuario.id,
+    ]);
+
+    res.json({ message: "Senha alterada com sucesso." });
+  } catch (err) {
+    console.error("Erro ao alterar senha:", err.message);
     res.status(500).json({ error: "Erro interno no servidor" });
   }
 });
