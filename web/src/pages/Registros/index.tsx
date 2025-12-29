@@ -31,6 +31,23 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
   const startTimeRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const encerrarReconhecimento = () => {
+    pararRestartPeriodico();
+    recognitionRef.current?.stop();
+    limparStream();
+  };
+
+  const limparEstados = () => {
+    setGravando(false);
+    setPausado(false);
+    setTranscricaoTemp('');
+    setTranscricaoEditada('');
+    setTranscricaoFinal('');
+    transcriptionRef.current = '';
+    setTempo(0);
+    startTimeRef.current = null;
+  };
+
   const limparStream = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -158,39 +175,28 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
     iniciarRestartPeriodico();
   };
 
-  const pararGravacao = () => {
-    pararRestartPeriodico();
-    recognitionRef.current?.stop();
-    setTimeout(() => {
-      setGravando(false);
-      setPausado(false);
-      setTranscricaoFinal(transcriptionRef.current);
-      setTranscricaoEditada(transcriptionRef.current);
-      limparStream();
-    }, 250);
-  };
-
   const cancelar = () => {
-    pararRestartPeriodico();
-    recognitionRef.current?.stop();
-    limparStream();
-    setGravando(false);
-    setPausado(false);
+    encerrarReconhecimento();
     setModalAberto(false);
-    setTranscricaoTemp('');
-    setTranscricaoEditada('');
-    setTranscricaoFinal('');
-    transcriptionRef.current = '';
-    setTempo(0);
-    startTimeRef.current = null;
+    limparEstados();
   };
 
   const confirmar = () => {
-    const textoFinal = transcricaoEditada || transcricaoFinal || transcriptionRef.current;
-    if (textoFinal.trim()) {
-      onApply(textoFinal.trim());
+    // Captura o texto mais recente, mesmo se ainda estiver gravando
+    const textoAtual =
+      (pausado ? transcricaoEditada : transcricaoTemp) ||
+      transcricaoEditada ||
+      transcricaoFinal ||
+      transcriptionRef.current;
+
+    encerrarReconhecimento();
+
+    if (textoAtual.trim()) {
+      onApply(textoAtual.trim());
     }
-    cancelar();
+
+    setModalAberto(false);
+    limparEstados();
   };
 
   useEffect(() => {
@@ -227,19 +233,15 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div className="fw-bold">Tempo: {formatarTempo(tempo)}</div>
             <div className="d-flex gap-2">
-              {gravando && !pausado && (
-                <Button color="warning" size="sm" onClick={pausarGravacao}>
-                  Pausar
-                </Button>
-              )}
-              {gravando && pausado && (
-                <Button color="primary" size="sm" onClick={retomarGravacao}>
-                  Retomar
-                </Button>
-              )}
               {gravando && (
-                <Button color="danger" size="sm" onClick={pararGravacao}>
-                  Parar
+                <Button
+                  color={pausado ? 'success' : 'warning'}
+                  outline
+                  size="sm"
+                  onClick={pausado ? retomarGravacao : pausarGravacao}
+                >
+                  <i className={pausado ? 'ri-play-line me-1' : 'ri-pause-line me-1'}></i>
+                  {pausado ? 'Retomar' : 'Pausar'}
                 </Button>
               )}
             </div>
