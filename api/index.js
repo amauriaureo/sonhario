@@ -7,10 +7,32 @@ require("dotenv").config();
 const morgan = require("morgan");
 const app = express();
 const port = process.env.PORT || 3000;
+const { enviarEmailReset } = require("./mailer");
 
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
+
+// Utilitário simples para gerar senha aleatória
+function gerarSenhaAleatoria(tamanho = 12) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+  let senha = "";
+  for (let i = 0; i < tamanho; i++) {
+    senha += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return senha;
+}
+
+// await enviarEmailReset(email, usuario.nome, novaSenha);
+
+// Stub de envio de e-mail (substitua por nodemailer/serviço real)
+// async function enviarEmailReset(destinatario, novaSenha) {
+//   console.log(
+//     `[RESET SENHA] Enviar para ${destinatario} a nova senha: ${novaSenha}`
+//   );
+//   // Aqui você pode integrar nodemailer ou outro serviço de e-mail.
+// }
 
 // Rota de Teste
 app.get("/", (req, res) => {
@@ -84,6 +106,40 @@ app.post("/usuarios/login", async (req, res) => {
     res.json({ message: "Login bem-sucedido!", token, usuario });
   } catch (err) {
     console.error("Erro no login:", err.message);
+    res.status(500).json({ error: "Erro interno no servidor" });
+  }
+});
+
+// Rota de Esqueci Minha Senha
+app.post("/usuarios/esqueci-senha", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "E-mail é obrigatório." });
+  }
+
+  try {
+    const userQuery = "SELECT * FROM usuarios WHERE email = $1";
+    const result = await db.query(userQuery, [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "E-mail não cadastrado." });
+    }
+
+    const usuario = result.rows[0];
+    const novaSenha = gerarSenhaAleatoria(12);
+    const hashSenha = await bcrypt.hash(novaSenha, 10);
+
+    const updateQuery = "UPDATE usuarios SET senha = $1 WHERE id = $2";
+    await db.query(updateQuery, [hashSenha, usuario.id]);
+
+    await enviarEmailReset(email, usuario.nome, novaSenha);
+
+    res.json({
+      message: "Uma nova senha foi gerada e enviada para seu e-mail.",
+    });
+  } catch (err) {
+    console.error("Erro no reset de senha:", err.message);
     res.status(500).json({ error: "Erro interno no servidor" });
   }
 });
