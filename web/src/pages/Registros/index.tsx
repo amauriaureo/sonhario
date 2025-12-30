@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../services/api';
 import Dashboard from '../Dashboard'; // Usaremos o Dashboard como cabeçalho
-import { FiEdit2, FiTrash2, FiPlus, FiEye, FiCheck, FiMic, FiPause, FiPlay } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiCheck, FiMic, FiPause, FiPlay } from 'react-icons/fi';
 
 interface Registro {
   id: string;
@@ -378,6 +378,7 @@ function RegistrosPage() {
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [registroSelecionado, setRegistroSelecionado] = useState<Registro | null>(null);
   const [texto, setTexto] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [deletando, setDeletando] = useState(false);
@@ -501,9 +502,31 @@ function RegistrosPage() {
     ? textoAtualNormalizado.length > 0
     : textoAtualNormalizado !== textoOriginalNormalizado;
 
+  const normalizeText = (value: string) =>
+    (value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  const termos = normalizeText(searchTerm)
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const registrosFiltrados =
+    termos.length === 0
+      ? registros
+      : registros.filter((reg) => {
+          const conteudo = normalizeText(reg.registro || '');
+          return termos.every((t) => conteudo.includes(t));
+        });
+
   return (
     <>
-      <Dashboard abrirNovoRegistro={abrirNovoRegistro} />
+      <Dashboard
+        abrirNovoRegistro={abrirNovoRegistro}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
       <Container fluid className="px-3 py-4">
         <div className="mx-auto" style={{ maxWidth: 1200 }}>
           {erro && <Alert color="danger">{erro}</Alert>}
@@ -519,15 +542,19 @@ function RegistrosPage() {
                 <div className="text-center py-5"><Spinner color="primary" /></div>
               ) : (
                 <>
-                  {registros.length === 0 ? (
+                  {registrosFiltrados.length === 0 ? (
                     <Card className="border-0 shadow-sm">
                       <CardBody className="p-4">
-                        <div className="text-muted">Você ainda não possui registros.</div>
+                        <div className="text-muted">
+                          {searchTerm.trim()
+                            ? 'Nenhum registro encontrado para essa busca.'
+                            : 'Você ainda não possui registros.'}
+                        </div>
                       </CardBody>
                     </Card>
                   ) : (
                     <div className="d-flex flex-column gap-3">
-                      {registros.map((reg) => (
+                      {registrosFiltrados.map((reg) => (
                         <Card
                           key={reg.id}
                           className="border-0 shadow-sm"

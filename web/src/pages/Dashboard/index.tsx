@@ -8,11 +8,20 @@ interface Usuario {
   nome: string;
 }
 
-function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
+function Dashboard({
+  abrirNovoRegistro,
+  searchValue,
+  onSearchChange,
+}: {
+  abrirNovoRegistro: () => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+}) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
   const [novoMenuAberto, setNovoMenuAberto] = useState(false);
   const [perfilAberto, setPerfilAberto] = useState(false);
+  const [searchLocal, setSearchLocal] = useState('');
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -83,25 +92,48 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
 
   if (!usuario) return null;
 
+  const valorBusca = searchValue ?? searchLocal;
+
   return (
     <div className="py-1 outsiderBrasil mb-4 shadow-sm">
-      <Container fluid>
-        <Row className="align-items-center">
-          <Col md={4}>
-            <h4 className="mb-0 font-weight-bold">Olá, {usuario.nome}</h4>
-          </Col>
-          <Col md={5} className="text-center">
-            <span className="font-italic" style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-              "o sonho é um fenômeno contínuo entre vigília, sono e emoção"
-            </span>
-          </Col>
-          <Col md={3} className="text-end">
-            {/* <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
-              {resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'Sem atividade'}
-            </Button> */}
-            <div className="d-inline-flex align-items-center gap-2">
-              {/* Novo (ação principal) + dropdown acoplado */}
-              <div className="btn-group me-1" role="group" aria-label="Novo">
+      <Container fluid className="px-4 px-md-4">
+        <div className="mx-auto" style={{ maxWidth: 1200 }}>
+          <Row className="align-items-center g-2">
+            <Col xs="auto">
+              <h4 className="mb-0 font-weight-bold" style={{ color: 'var(--marrom-escuro)' }}>
+                Sonhário
+              </h4>
+            </Col>
+
+            <Col>
+              <div className="position-relative">
+                <Input
+                  type="text"
+                  value={valorBusca}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSearchLocal(v);
+                    onSearchChange?.(v);
+                  }}
+                  placeholder="Pesquisar nos registros..."
+                  className="border-0 shadow-sm bg-light-subtle"
+                  style={{ paddingLeft: 40, borderRadius: 10 }}
+                />
+                <span
+                  className="mdi mdi-magnify"
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    opacity: 0.6,
+                  }}
+                ></span>
+              </div>
+            </Col>
+
+            <Col xs="auto">
+              <div className="btn-group" role="group" aria-label="Novo">
                 <Button color="dark" size="sm" onClick={abrirNovoRegistro}>
                   <FiPlus className="me-2" />
                   Novo
@@ -141,9 +173,7 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
                   >
                     <DropdownItem
                       title="Em breve"
-                      onClick={(e) => {
-                        e.preventDefault();
-                      }}
+                      onClick={(e) => e.preventDefault()}
                       style={{
                         opacity: 0.6,
                         cursor: 'not-allowed',
@@ -157,8 +187,9 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
                   </DropdownMenu>
                 </Dropdown>
               </div>
+            </Col>
 
-              {/* Dropdown estilo ProfileDropdown (avatar + nome) */}
+            <Col xs="auto">
               <Dropdown
                 isOpen={perfilAberto}
                 toggle={togglePerfil}
@@ -226,9 +257,9 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
-            </div>
-          </Col>
-        </Row>
+            </Col>
+          </Row>
+        </div>
       </Container>
 
       <Modal isOpen={modalSenhaAberto} toggle={toggleModal}>
