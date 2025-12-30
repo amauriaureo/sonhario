@@ -499,48 +499,11 @@ function RegistrosPage() {
         keyboard={!(salvando || deletando)}
       >
         <ModalHeader toggle={fecharModalRegistro}>
-          <div className="d-flex align-items-center justify-content-between w-100">
-            <div>
-              {registroSelecionado
-                ? modoModal === 'edit'
-                  ? 'Editar Registro'
-                  : 'Visualizar Registro'
-                : 'Novo Registro'}
-            </div>
-
-            {/* Ações ficam no modal de Visualizar */}
-            {registroSelecionado && modoModal === 'view' && (
-              <div className="d-flex align-items-center gap-2 me-2">
-                <Button
-                  color="link"
-                  className="p-0 text-muted"
-                  title="Editar"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setConfirmandoDelete(false);
-                    setModoModal('edit');
-                  }}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <FiEdit2 size={18} />
-                </Button>
-                <Button
-                  color="link"
-                  className="p-0 text-danger"
-                  title="Deletar"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setConfirmandoDelete(true);
-                  }}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <FiTrash2 size={18} />
-                </Button>
-              </div>
-            )}
-          </div>
+          {registroSelecionado
+            ? modoModal === 'edit'
+              ? 'Editar Registro'
+              : 'Visualizar Registro'
+            : 'Novo Registro'}
         </ModalHeader>
 
         <ModalBody>
@@ -580,10 +543,10 @@ function RegistrosPage() {
           )}
         </ModalBody>
 
-        <ModalFooter>
+        <ModalFooter className="d-flex justify-content-between align-items-center">
           {modoModal === 'view' ? (
             <>
-              <Button
+              {/* <Button
                 color="secondary"
                 onClick={() => {
                   setConfirmandoDelete(false);
@@ -592,17 +555,55 @@ function RegistrosPage() {
                 disabled={deletando}
               >
                 Fechar
-              </Button>
+              </Button> */}
+              <div></div>
 
-              {registroSelecionado && confirmandoDelete && (
-                <Button
-                  color="danger"
-                  onClick={handleDeletar}
-                  disabled={deletando}
-                >
-                  {deletando ? <Spinner size="sm" /> : 'Deletar'}
-                </Button>
-              )}
+              <div className="d-flex align-items-center gap-2">
+                {/* Ícones no final do modal (rodapé), à direita */}
+                {registroSelecionado && (
+                  <>
+                    <Button
+                      color="link"
+                      className="p-0 text-muted"
+                      title="Editar"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setConfirmandoDelete(false);
+                        setModoModal('edit');
+                      }}
+                      style={{ textDecoration: 'none' }}
+                      disabled={deletando}
+                    >
+                      <FiEdit2 size={18} />
+                    </Button>
+                    <Button
+                      color="link"
+                      className="p-0 text-danger"
+                      title="Deletar"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setConfirmandoDelete(true);
+                      }}
+                      style={{ textDecoration: 'none' }}
+                      disabled={deletando}
+                    >
+                      <FiTrash2 size={18} />
+                    </Button>
+                  </>
+                )}
+
+                {registroSelecionado && confirmandoDelete && (
+                  <Button
+                    color="danger"
+                    onClick={handleDeletar}
+                    disabled={deletando}
+                  >
+                    {deletando ? <Spinner size="sm" /> : 'Deletar'}
+                  </Button>
+                )}
+              </div>
             </>
           ) : (
             <>
