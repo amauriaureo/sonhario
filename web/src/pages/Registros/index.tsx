@@ -573,6 +573,7 @@ function RegistrosPage() {
                                 <div
                                   className="text-body"
                                   style={{
+                                    fontSize: '15px',
                                     display: '-webkit-box',
                                     WebkitLineClamp: 2,
                                     WebkitBoxOrient: 'vertical',
@@ -594,7 +595,7 @@ function RegistrosPage() {
                                   }}
                                   style={{ textDecoration: 'none' }}
                                 >
-                                  <FiEdit2 size={18} />
+                                  <FiEdit2 size={15} />
                                 </Button>
                                 <Button
                                   color="link"
@@ -606,7 +607,7 @@ function RegistrosPage() {
                                   }}
                                   style={{ textDecoration: 'none' }}
                                 >
-                                  <FiTrash2 size={18} />
+                                  <FiTrash2 size={15} />
                                 </Button>
                               </div>
                             </div>
@@ -628,7 +629,7 @@ function RegistrosPage() {
         toggle={fecharModalRegistro}
         // centered
         size="xl"
-        backdrop={salvando || deletando ? 'static' : true}
+        backdrop={'static'}
         keyboard={!(salvando || deletando)}
       >
         <ModalHeader toggle={fecharModalRegistro}>

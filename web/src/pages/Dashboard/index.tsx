@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import api from '../../services/api';
-import { FiPlus, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiChevronDown, FiSearch } from 'react-icons/fi';
 
 interface Usuario {
   nome: string;
@@ -93,6 +93,7 @@ function Dashboard({
   if (!usuario) return null;
 
   const valorBusca = searchValue ?? searchLocal;
+  const corMarrom = 'var(--marrom-escuro)';
 
   return (
     <div className="py-1 outsiderBrasil mb-4 shadow-sm">
@@ -120,21 +121,30 @@ function Dashboard({
                   style={{ paddingLeft: 40, borderRadius: 10 }}
                 />
                 <span
-                  className="mdi mdi-magnify"
                   style={{
                     position: 'absolute',
                     left: 14,
                     top: '50%',
                     transform: 'translateY(-50%)',
                     opacity: 0.6,
+                    pointerEvents: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                   }}
-                ></span>
+                  aria-hidden="true"
+                >
+                  <FiSearch size={16} />
+                </span>
               </div>
             </Col>
 
             <Col xs="auto">
               <div className="btn-group" role="group" aria-label="Novo">
-                <Button color="dark" size="sm" onClick={abrirNovoRegistro}>
+                <Button
+                  size="sm"
+                  onClick={abrirNovoRegistro}
+                  style={{ backgroundColor: corMarrom, borderColor: corMarrom }}
+                >
                   <FiPlus className="me-2" />
                   Novo
                 </Button>
@@ -146,13 +156,15 @@ function Dashboard({
                   role="group"
                 >
                   <DropdownToggle
-                    className="btn btn-dark btn-sm"
+                    className="btn btn-sm"
                     style={{
                       fontSize: '12px',
                       padding: '4px',
                       borderLeft: '1px solid rgba(255,255,255,0.2)',
                       borderRadius: '2px',
                       border: 'none',
+                      backgroundColor: corMarrom,
+                      color: '#fff',
                     }}
                     aria-label="Opções do Novo"
                     title="Opções"
