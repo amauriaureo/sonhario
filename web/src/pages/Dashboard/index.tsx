@@ -1,21 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner } from 'reactstrap';
+import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import api from '../../services/api';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiChevronDown } from 'react-icons/fi';
 
 interface Usuario {
   nome: string;
 }
 
-interface Resumo {
-  total: number;
-  ultimaAtividade: string | null;
-}
-
 function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
+  const [novoMenuAberto, setNovoMenuAberto] = useState(false);
+  const [perfilAberto, setPerfilAberto] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -46,6 +43,16 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
       setNovaSenha('');
       setConfirmarSenha('');
     }
+  };
+
+  const togglePerfil = () => setPerfilAberto((prev) => !prev);
+  const toggleNovoMenu = () => setNovoMenuAberto((prev) => !prev);
+
+  const getIniciais = (nome: string) => {
+    const partes = nome.trim().split(/\s+/).filter(Boolean);
+    const a = partes[0]?.[0] ?? '';
+    const b = partes.length > 1 ? partes[partes.length - 1]?.[0] ?? '' : '';
+    return `${a}${b}`.toUpperCase();
   };
 
   const handleAlterarSenha = async (e: React.FormEvent) => {
@@ -92,16 +99,134 @@ function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
             {/* <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
               {resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'Sem atividade'}
             </Button> */}
-            <Button color="dark" size="sm" className="me-2" onClick={abrirNovoRegistro}>
-              <FiPlus className="me-2" />
-              Novo 
-            </Button>
-            <Button color="dark" size="sm" className="me-2" onClick={toggleModal}>
-              Alterar senha
-            </Button>
-            <Button color="dark" size="sm" onClick={handleLogout}>
-              Sair
-            </Button>
+            <div className="d-inline-flex align-items-center gap-2">
+              {/* Novo (ação principal) + dropdown acoplado */}
+              <div className="btn-group me-1" role="group" aria-label="Novo">
+                <Button color="dark" size="sm" onClick={abrirNovoRegistro}>
+                  <FiPlus className="me-2" />
+                  Novo
+                </Button>
+                <Dropdown
+                  isOpen={novoMenuAberto}
+                  toggle={toggleNovoMenu}
+                  direction="down"
+                  className="btn-group"
+                  role="group"
+                >
+                  <DropdownToggle
+                    className="btn btn-dark btn-sm"
+                    style={{
+                      fontSize: '12px',
+                      padding: '4px',
+                      borderLeft: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '2px',
+                      border: 'none',
+                    }}
+                    aria-label="Opções do Novo"
+                    title="Opções"
+                  >
+                    <FiChevronDown />
+                  </DropdownToggle>
+                  <DropdownMenu
+                    end
+                    modifiers={
+                      ([
+                        {
+                          name: 'preventOverflow',
+                          options: { boundary: 'viewport', padding: 8, altAxis: true },
+                        },
+                        { name: 'flip', options: { boundary: 'viewport', padding: 8 } },
+                      ] as any)
+                    }
+                  >
+                    <DropdownItem
+                      title="Em breve"
+                      onClick={(e) => {
+                        e.preventDefault();
+                      }}
+                      style={{
+                        opacity: 0.6,
+                        cursor: 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      IA
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+
+              {/* Dropdown estilo ProfileDropdown (avatar + nome) */}
+              <Dropdown
+                isOpen={perfilAberto}
+                toggle={togglePerfil}
+                direction="down"
+                className="d-inline-block"
+              >
+                <DropdownToggle
+                  caret={false}
+                  tag="button"
+                  type="button"
+                  className="btn p-0"
+                  title="Perfil"
+                  aria-label="Perfil"
+                  style={{ background: 'transparent', border: 'none' }}
+                >
+                  <span className="d-flex align-items-center">
+                    <span
+                      className="rounded-circle d-inline-flex align-items-center justify-content-center"
+                      style={{
+                        width: 30,
+                        height: 30,
+                        backgroundColor: 'var(--marrom-escuro)',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {getIniciais(usuario.nome)}
+                    </span>
+                    <span
+                      className="d-none d-md-inline-block ms-2 fw-medium"
+                      style={{ color: 'var(--marrom-escuro)' }}
+                    >
+                      {usuario.nome}
+                    </span>
+                  </span>
+                </DropdownToggle>
+                <DropdownMenu
+                  end
+                  modifiers={
+                    ([
+                      {
+                        name: 'preventOverflow',
+                        options: { boundary: 'viewport', padding: 8, altAxis: true },
+                      },
+                      { name: 'flip', options: { boundary: 'viewport', padding: 8 } },
+                    ] as any)
+                  }
+                >
+                  <DropdownItem
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      toggleModal();
+                    }}
+                  >
+                    Alterar senha
+                  </DropdownItem>
+                  <DropdownItem
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      handleLogout();
+                    }}
+                  >
+                    Sair
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           </Col>
         </Row>
       </Container>
