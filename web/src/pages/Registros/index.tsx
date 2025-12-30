@@ -158,8 +158,12 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
     setPausado(true);
     pararRestartPeriodico();
     recognitionRef.current?.stop();
-    setTranscricaoFinal(transcriptionRef.current);
-    setTranscricaoEditada(transcriptionRef.current);
+    // Captura o texto completo visível no momento (inclui resultados parciais)
+    const textoAtual = transcricaoTemp || transcriptionRef.current;
+    setTranscricaoFinal(textoAtual);
+    setTranscricaoEditada(textoAtual);
+    // Atualiza a referência para que ao retomar continue do ponto correto
+    transcriptionRef.current = textoAtual;
   };
 
   const retomarGravacao = () => {
