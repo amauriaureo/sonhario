@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, CardBody, Button, Input, ListGroup, ListGroupItem, Spinner, Alert, Modal, ModalBody, ModalHeader } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, Button, Input, Spinner, Alert, Modal, ModalBody, ModalHeader, ModalFooter } from 'reactstrap';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../services/api';
 import Dashboard from '../Dashboard'; // Usaremos o Dashboard como cabeçalho
+import { FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi';
 
 interface Registro {
   id: string;
@@ -280,7 +281,11 @@ function RegistrosPage() {
   const [texto, setTexto] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [deletando, setDeletando] = useState(false);
   const [erro, setErro] = useState('');
+  const [modalRegistroAberto, setModalRegistroAberto] = useState(false);
+  const [modoModal, setModoModal] = useState<'view' | 'edit'>('view');
+  const [confirmandoDelete, setConfirmandoDelete] = useState(false);
 
   const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -315,6 +320,7 @@ function RegistrosPage() {
       }
       setTexto('');
       setRegistroSelecionado(null);
+      setModalRegistroAberto(false);
       fetchRegistros(); // Atualiza a lista
     } catch (err) {
       setErro('Erro ao salvar o registro.');
@@ -323,119 +329,311 @@ function RegistrosPage() {
     }
   };
 
-  const selecionarRegistro = (reg: Registro) => {
-    setRegistroSelecionado(reg);
-    setTexto(reg.registro);
-  };
-
-  const novoRegistro = () => {
+  const abrirNovoRegistro = () => {
     setRegistroSelecionado(null);
     setTexto('');
+    setModoModal('edit');
+    setConfirmandoDelete(false);
+    setModalRegistroAberto(true);
+  };
+
+  const abrirEdicaoRegistro = (reg: Registro) => {
+    setRegistroSelecionado(reg);
+    setTexto(reg.registro || '');
+    setModoModal('edit');
+    setConfirmandoDelete(false);
+    setModalRegistroAberto(true);
+  };
+
+  const abrirVisualizacaoRegistro = (reg: Registro) => {
+    setRegistroSelecionado(reg);
+    setTexto(reg.registro || '');
+    setModoModal('view');
+    setConfirmandoDelete(false);
+    setModalRegistroAberto(true);
+  };
+
+  const abrirDeleteRegistro = (reg: Registro) => {
+    setRegistroSelecionado(reg);
+    setTexto(reg.registro || '');
+    setModoModal('view');
+    setConfirmandoDelete(true);
+    setModalRegistroAberto(true);
+  };
+
+  const fecharModalRegistro = () => {
+    if (salvando || deletando) return;
+    setModalRegistroAberto(false);
+    setConfirmandoDelete(false);
+    setModoModal('view');
   };
 
   const aplicarTranscricao = (textoTranscrito: string) => {
     setTexto(textoTranscrito);
   };
 
+  const handleDeletar = async () => {
+    if (!registroSelecionado?.id) return;
+    setDeletando(true);
+    try {
+      await api.delete(`/registros/${registroSelecionado.id}`, config);
+      setModalRegistroAberto(false);
+      setRegistroSelecionado(null);
+      setConfirmandoDelete(false);
+      setModoModal('view');
+      fetchRegistros();
+    } catch (err) {
+      setErro('Erro ao deletar o registro.');
+    } finally {
+      setDeletando(false);
+    }
+  };
+
   return (
     <>
       <Dashboard />
-      <Container fluid className="px-md-5">
-        {erro && <Alert color="danger">{erro}</Alert>}
-        <Row>
-          {/* Lado Esquerdo - Lista */}
-          <Col md={4} className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Meus Sonhos</h5>
-                {/* <Button 
-                  color="dark" 
-                  size="sm" 
-                  onClick={novoRegistro} 
-                  className="btn-round"
-                >
-                  +
-                </Button> */}
-              </div>
-            
-            {carregando ? (
-              <div className="text-center py-5"><Spinner color="primary" /></div>
-            ) : (
-              <ListGroup className="border-0 bg-transparent" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                {registros.map(reg => (
-                  <ListGroupItem 
-                    key={reg.id} 
-                    action 
-                    active={registroSelecionado?.id === reg.id}
-                    onClick={() => selecionarRegistro(reg)}
-                    className="shadow-sm p-3"
-                  >
-                    <div className="d-flex w-100 justify-content-between mb-1">
-                      <small className={registroSelecionado?.id === reg.id ? 'text-white-50' : 'text-muted'}>
-                        {format(new Date(reg.criado_em), "dd 'de' MMM", { locale: ptBR })}
-                      </small>
-                    </div>
-                    <p className={`mb-0 text-truncate ${registroSelecionado?.id === reg.id ? 'text-white' : 'font-weight-bold'}`}>
-                      {reg.registro}
-                    </p>
-                  </ListGroupItem>
-                ))}
-              </ListGroup>
-            )}
-          </Col>
+      <Container fluid className="px-3 py-4">
+        <div className="mx-auto" style={{ maxWidth: 1200 }}>
+          {erro && <Alert color="danger">{erro}</Alert>}
 
-          {/* Lado Direito - Editor */}
-          <Col md={8}>
-            <Card className="shadow-sm border-0" style={{ minHeight: '500px' }}>
-              <CardBody className="d-flex flex-column p-4">
-                <div className="mb-4">
-                  <h5 className="font-weight-bold ms-1" style={{ color: 'var(--marrom-escuro)' }}>
-                    {registroSelecionado ? 'Editando Registro' : 'Novo Registro'}
-                  </h5>
-                  {registroSelecionado && (
-                    <small className="text-muted">
-                      Criado em: {format(new Date(registroSelecionado.criado_em), "Pp", { locale: ptBR })}
-                    </small>
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <h4 className="mb-0" style={{ color: 'var(--marrom-escuro)' }}>Meus Sonhos</h4>
+              <small className="text-muted">Clique em um card para visualizar. Use os ícones para editar/deletar.</small>
+            </div>
+            <Button color="dark" onClick={abrirNovoRegistro}>
+              <FiPlus className="me-2" />
+              Novo Registro
+            </Button>
+          </div>
+
+          <Row className="g-3">
+            <Col lg={12}>
+              {carregando ? (
+                <div className="text-center py-5"><Spinner color="primary" /></div>
+              ) : (
+                <>
+                  {registros.length === 0 ? (
+                    <Card className="border-0 shadow-sm">
+                      <CardBody className="p-4">
+                        <div className="text-muted">Você ainda não possui registros.</div>
+                      </CardBody>
+                    </Card>
+                  ) : (
+                    <div className="d-flex flex-column gap-3">
+                      {registros.map((reg) => (
+                        <Card
+                          key={reg.id}
+                          className="border-0 shadow-sm"
+                          role="button"
+                          onClick={() => abrirVisualizacaoRegistro(reg)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <CardBody className="p-3 p-md-4">
+                            <div className="d-flex align-items-start justify-content-between gap-3">
+                              <div className="flex-grow-1">
+                                <div className="d-flex align-items-center gap-2 mb-2">
+                                  <small className="text-muted">
+                                    {format(new Date(reg.criado_em), "dd 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                                  </small>
+                                </div>
+                                <div
+                                  className="text-body"
+                                  style={{
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                  }}
+                                >
+                                  {reg.registro}
+                                </div>
+                              </div>
+
+                              <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                                <Button
+                                  color="link"
+                                  className="p-0 text-muted"
+                                  title="Editar"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    abrirEdicaoRegistro(reg);
+                                  }}
+                                  style={{ textDecoration: 'none' }}
+                                >
+                                  <FiEdit2 size={18} />
+                                </Button>
+                                <Button
+                                  color="link"
+                                  className="p-0 text-danger"
+                                  title="Deletar"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    abrirDeleteRegistro(reg);
+                                  }}
+                                  style={{ textDecoration: 'none' }}
+                                >
+                                  <FiTrash2 size={18} />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      ))}
+                    </div>
                   )}
-                </div>
-                
-                <div className="position-relative flex-grow-1 mb-4">
-                  <Input
-                    type="textarea"
-                    value={texto}
-                    onChange={(e) => setTexto(e.target.value)}
-                    placeholder="Registre seu estado mental ao redor do sonho."
-                    className=""
-                    style={{ resize: 'none', paddingRight: '140px' }}
-                  />
-                  <div
-                    className="position-absolute"
-                    style={{ top: '12px', right: '12px' }}
-                  >
-                    <TranscricaoRegistros onApply={aplicarTranscricao} disabled={salvando} />
-                  </div>
-                </div>
-                
-                <div className="text-end">
-                  {registroSelecionado && (
-                    <Button color="link" className="text-muted me-3 text-decoration-none" onClick={novoRegistro}>
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button 
-                    color="dark" 
-                    size="sm" 
-                    disabled={salvando || !texto.trim()} 
-                    onClick={handleSalvar}
-                    className="px-5 shadow-sm"
-                  >
-                    {salvando ? <Spinner size="sm" /> : 'Salvar Registro'}
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+                </>
+              )}
+            </Col>
+          </Row>
+        </div>
       </Container>
+
+      {/* Modal único: Visualizar / Editar / Novo (condicionais) */}
+      <Modal
+        isOpen={modalRegistroAberto}
+        toggle={fecharModalRegistro}
+        centered
+        size="lg"
+        backdrop={salvando || deletando ? 'static' : true}
+        keyboard={!(salvando || deletando)}
+      >
+        <ModalHeader toggle={fecharModalRegistro}>
+          <div className="d-flex align-items-center justify-content-between w-100">
+            <div>
+              {registroSelecionado
+                ? modoModal === 'edit'
+                  ? 'Editar Registro'
+                  : 'Visualizar Registro'
+                : 'Novo Registro'}
+            </div>
+
+            {/* Ações ficam no modal de Visualizar */}
+            {registroSelecionado && modoModal === 'view' && (
+              <div className="d-flex align-items-center gap-2 me-2">
+                <Button
+                  color="link"
+                  className="p-0 text-muted"
+                  title="Editar"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setConfirmandoDelete(false);
+                    setModoModal('edit');
+                  }}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <FiEdit2 size={18} />
+                </Button>
+                <Button
+                  color="link"
+                  className="p-0 text-danger"
+                  title="Deletar"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setConfirmandoDelete(true);
+                  }}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <FiTrash2 size={18} />
+                </Button>
+              </div>
+            )}
+          </div>
+        </ModalHeader>
+
+        <ModalBody>
+          {registroSelecionado?.criado_em && (
+            <div className="mb-3">
+              <small className="text-muted">
+                Criado em:{' '}
+                {format(new Date(registroSelecionado.criado_em), "Pp", { locale: ptBR })}
+              </small>
+            </div>
+          )}
+
+          {confirmandoDelete && registroSelecionado && modoModal === 'view' && (
+            <Alert color="danger" className="mb-3">
+              Essa ação é irreversível. Confirma deletar este registro?
+            </Alert>
+          )}
+
+          {modoModal === 'view' ? (
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+              {registroSelecionado?.registro || ''}
+            </div>
+          ) : (
+            <div className="position-relative">
+              <Input
+                type="textarea"
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Registre seu estado mental ao redor do sonho."
+                style={{ resize: 'none', minHeight: 220, paddingRight: '140px' }}
+                disabled={salvando}
+              />
+              <div className="position-absolute" style={{ top: '12px', right: '12px' }}>
+                <TranscricaoRegistros onApply={aplicarTranscricao} disabled={salvando} />
+              </div>
+            </div>
+          )}
+        </ModalBody>
+
+        <ModalFooter>
+          {modoModal === 'view' ? (
+            <>
+              <Button
+                color="secondary"
+                onClick={() => {
+                  setConfirmandoDelete(false);
+                  fecharModalRegistro();
+                }}
+                disabled={deletando}
+              >
+                Fechar
+              </Button>
+
+              {registroSelecionado && confirmandoDelete && (
+                <Button
+                  color="danger"
+                  onClick={handleDeletar}
+                  disabled={deletando}
+                >
+                  {deletando ? <Spinner size="sm" /> : 'Deletar'}
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                color="dark"
+                onClick={() => {
+                  // Se está editando um registro existente, volta para view no mesmo modal
+                  if (registroSelecionado) {
+                    setModoModal('view');
+                    setConfirmandoDelete(false);
+                    setTexto(registroSelecionado.registro || '');
+                    return;
+                  }
+                  // Se é um novo, fecha
+                  fecharModalRegistro();
+                }}
+                disabled={salvando}
+              >
+                {registroSelecionado ? 'Visualizar' : 'Cancelar'}
+              </Button>
+              <Button
+                color="dark"
+                onClick={handleSalvar}
+                disabled={salvando || !texto.trim()}
+              >
+                {salvando ? <Spinner size="sm" /> : 'Salvar Registro'}
+              </Button>
+            </>
+          )}
+        </ModalFooter>
+      </Modal>
     </>
   );
 }
