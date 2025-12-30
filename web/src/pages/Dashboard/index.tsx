@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner } from 'reactstrap';
+import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import api from '../../services/api';
+import { FiPlus, FiChevronDown, FiSearch } from 'react-icons/fi';
 
 interface Usuario {
   nome: string;
 }
 
-interface Resumo {
-  total: number;
-  ultimaAtividade: string | null;
-}
-
-function Dashboard() {
+function Dashboard({
+  abrirNovoRegistro,
+  searchValue,
+  onSearchChange,
+}: {
+  abrirNovoRegistro: () => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+}) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [resumo, setResumo] = useState<Resumo>({ total: 0, ultimaAtividade: null });
   const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
+  const [novoMenuAberto, setNovoMenuAberto] = useState(false);
+  const [perfilAberto, setPerfilAberto] = useState(false);
+  const [searchLocal, setSearchLocal] = useState('');
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -27,26 +33,11 @@ function Dashboard() {
     const usuarioSalvo = localStorage.getItem('usuario');
     if (usuarioSalvo) {
       setUsuario(JSON.parse(usuarioSalvo));
-      fetchResumo();
     } else {
       navigate('/');
     }
   }, [navigate]);
 
-  const fetchResumo = async () => {
-    try {
-      const response = await api.get('/registros', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const registros = response.data;
-      setResumo({
-        total: registros.length,
-        ultimaAtividade: registros.length > 0 ? registros[0].criado_em : null
-      });
-    } catch (err) {
-      console.error("Erro ao buscar resumo:", err);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -61,6 +52,16 @@ function Dashboard() {
       setNovaSenha('');
       setConfirmarSenha('');
     }
+  };
+
+  const togglePerfil = () => setPerfilAberto((prev) => !prev);
+  const toggleNovoMenu = () => setNovoMenuAberto((prev) => !prev);
+
+  const getIniciais = (nome: string) => {
+    const partes = nome.trim().split(/\s+/).filter(Boolean);
+    const a = partes[0]?.[0] ?? '';
+    const b = partes.length > 1 ? partes[partes.length - 1]?.[0] ?? '' : '';
+    return `${a}${b}`.toUpperCase();
   };
 
   const handleAlterarSenha = async (e: React.FormEvent) => {
@@ -91,30 +92,186 @@ function Dashboard() {
 
   if (!usuario) return null;
 
+  const valorBusca = searchValue ?? searchLocal;
+  const corMarrom = 'var(--marrom-escuro)';
+
   return (
-    <div className="bg-dark text-white py-3 mb-4 shadow">
-      <Container fluid>
-        <Row className="align-items-center">
-          <Col md={4}>
-            <h4 className="mb-0">Olá, <strong>{usuario.nome}</strong></h4>
-          </Col>
-          <Col md={5} className="text-center d-flex justify-content-around">
-            <div>
-              <small className="d-block text-muted text-uppercase">Total de Registros</small>
-              <span className="h5">{resumo.total}</span>
-            </div>
-            {resumo.ultimaAtividade && (
-              <div>
-                <small className="d-block text-muted text-uppercase">Última Atividade</small>
-                <span className="h6">{new Date(resumo.ultimaAtividade).toLocaleDateString()}</span>
+    <div className="py-1 outsiderBrasil mb-4 shadow-sm">
+      <Container fluid className="px-4 px-md-4">
+        <div className="mx-auto" style={{ maxWidth: 1200 }}>
+          <Row className="align-items-center g-2">
+            <Col xs="auto">
+              <h4 className="mb-0 font-weight-bold" style={{ color: 'var(--marrom-escuro)' }}>
+                Sonhário
+              </h4>
+            </Col>
+
+            <Col>
+              <div className="position-relative">
+                <Input
+                  type="text"
+                  value={valorBusca}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSearchLocal(v);
+                    onSearchChange?.(v);
+                  }}
+                  placeholder="Pesquisar nos registros..."
+                  className="border-0 shadow-sm bg-light-subtle"
+                  style={{ paddingLeft: 40, borderRadius: 10 }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    opacity: 0.6,
+                    pointerEvents: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                  }}
+                  aria-hidden="true"
+                >
+                  <FiSearch size={16} />
+                </span>
               </div>
-            )}
-          </Col>
-          <Col md={3} className="text-end">
-            <Button color="outline-light" size="sm" className="me-2" onClick={toggleModal}>Alterar senha</Button>
-            <Button color="outline-light" size="sm" onClick={handleLogout}>Sair</Button>
-          </Col>
-        </Row>
+            </Col>
+
+            <Col xs="auto">
+              <div className="btn-group" role="group" aria-label="Novo">
+                <Button
+                  size="sm"
+                  onClick={abrirNovoRegistro}
+                  style={{ backgroundColor: corMarrom, borderColor: corMarrom }}
+                >
+                  <FiPlus className="me-2" />
+                  Novo
+                </Button>
+                <Dropdown
+                  isOpen={novoMenuAberto}
+                  toggle={toggleNovoMenu}
+                  direction="down"
+                  className="btn-group"
+                  role="group"
+                >
+                  <DropdownToggle
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: '12px',
+                      padding: '4px',
+                      borderLeft: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '2px',
+                      border: 'none',
+                      backgroundColor: corMarrom,
+                      color: '#fff',
+                    }}
+                    aria-label="Opções do Novo"
+                    title="Opções"
+                  >
+                    <FiChevronDown />
+                  </DropdownToggle>
+                  <DropdownMenu
+                    end
+                    modifiers={
+                      ([
+                        {
+                          name: 'preventOverflow',
+                          options: { boundary: 'viewport', padding: 8, altAxis: true },
+                        },
+                        { name: 'flip', options: { boundary: 'viewport', padding: 8 } },
+                      ] as any)
+                    }
+                  >
+                    <DropdownItem
+                      title="Em breve"
+                      onClick={(e) => e.preventDefault()}
+                      style={{
+                        opacity: 0.6,
+                        cursor: 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      IA
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+            </Col>
+
+            <Col xs="auto">
+              <Dropdown
+                isOpen={perfilAberto}
+                toggle={togglePerfil}
+                direction="down"
+                className="d-inline-block"
+              >
+                <DropdownToggle
+                  caret={false}
+                  tag="button"
+                  type="button"
+                  className="btn p-0"
+                  title="Perfil"
+                  aria-label="Perfil"
+                  style={{ background: 'transparent', border: 'none' }}
+                >
+                  <span className="d-flex align-items-center">
+                    <span
+                      className="rounded-circle d-inline-flex align-items-center justify-content-center"
+                      style={{
+                        width: 30,
+                        height: 30,
+                        backgroundColor: 'var(--marrom-escuro)',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {getIniciais(usuario.nome)}
+                    </span>
+                    <span
+                      className="d-none d-md-inline-block ms-2 fw-medium"
+                      style={{ color: 'var(--marrom-escuro)' }}
+                    >
+                      {usuario.nome}
+                    </span>
+                  </span>
+                </DropdownToggle>
+                <DropdownMenu
+                  end
+                  modifiers={
+                    ([
+                      {
+                        name: 'preventOverflow',
+                        options: { boundary: 'viewport', padding: 8, altAxis: true },
+                      },
+                      { name: 'flip', options: { boundary: 'viewport', padding: 8 } },
+                    ] as any)
+                  }
+                >
+                  <DropdownItem
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      toggleModal();
+                    }}
+                  >
+                    Alterar senha
+                  </DropdownItem>
+                  <DropdownItem
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      handleLogout();
+                    }}
+                  >
+                    Sair
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </Col>
+          </Row>
+        </div>
       </Container>
 
       <Modal isOpen={modalSenhaAberto} toggle={toggleModal}>

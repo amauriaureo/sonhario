@@ -67,10 +67,6 @@ function Login() {
         <Container>
           <Row className="justify-content-center">
             <Col xs={12} sm={10} md={8} lg={6}>
-              <div className="logo-container">
-                {/* Adicione sua logo na pasta /public e referencie aqui */}
-                <img src={logo} alt="Logo Sonhário" />
-              </div>
               <Card className="auth-card shadow">
                 <CardBody className="p-4 p-md-5">
                   <h4 className="text-center mb-4">Seja Bem-Vindo!</h4>

@@ -78,4 +78,33 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Rota para DELETAR um registro
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const id_usuario = req.usuario.id;
+
+  try {
+    // Garante que o registro pertence ao usuário logado
+    const checkQuery =
+      "SELECT id FROM registros WHERE id = $1 AND id_usuario = $2";
+    const checkResult = await db.query(checkQuery, [id, id_usuario]);
+
+    if (checkResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Registro não encontrado ou não pertence ao usuário." });
+    }
+
+    await db.query("DELETE FROM registros WHERE id = $1 AND id_usuario = $2", [
+      id,
+      id_usuario,
+    ]);
+
+    res.json({ message: "Registro deletado com sucesso." });
+  } catch (err) {
+    console.error("Erro ao deletar registro:", err.message);
+    res.status(500).json({ error: "Erro interno no servidor" });
+  }
+});
+
 module.exports = router;
