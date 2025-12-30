@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../services/api';
 import Dashboard from '../Dashboard'; // Usaremos o Dashboard como cabeçalho
-import { FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiEye, FiCheck, FiMic } from 'react-icons/fi';
 
 interface Registro {
   id: string;
@@ -228,8 +228,16 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
 
   return (
     <>
-      <Button color="dark" size="sm" outline disabled={disabled} onClick={iniciarGravacao}>
-        Gravar voz
+      <Button
+        color="link"
+        className="p-0 text-muted"
+        disabled={disabled}
+        onClick={iniciarGravacao}
+        title="Gravar"
+        aria-label="Gravar"
+        style={{ textDecoration: 'none' }}
+      >
+        <FiMic size={18} />
       </Button>
 
       <Modal isOpen={modalAberto} toggle={cancelar} centered size="lg">
@@ -283,15 +291,17 @@ function RegistrosPage() {
   const [salvando, setSalvando] = useState(false);
   const [deletando, setDeletando] = useState(false);
   const [erro, setErro] = useState('');
-  const [modalRegistroAberto, setModalRegistroAberto] = useState(false);
+  const [modalRegistroAberto, setModalRegistroAberto] = useState(true);
   const [modoModal, setModoModal] = useState<'view' | 'edit'>('view');
   const [confirmandoDelete, setConfirmandoDelete] = useState(false);
+  const textoOriginalRef = useRef<string>('');
 
   const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   };
 
   useEffect(() => {
+    abrirNovoRegistro();
     fetchRegistros();
   }, []);
 
@@ -319,6 +329,7 @@ function RegistrosPage() {
         await api.post('/registros', { registro: texto }, config);
       }
       setTexto('');
+      textoOriginalRef.current = '';
       setRegistroSelecionado(null);
       setModalRegistroAberto(false);
       fetchRegistros(); // Atualiza a lista
@@ -332,6 +343,7 @@ function RegistrosPage() {
   const abrirNovoRegistro = () => {
     setRegistroSelecionado(null);
     setTexto('');
+    textoOriginalRef.current = '';
     setModoModal('edit');
     setConfirmandoDelete(false);
     setModalRegistroAberto(true);
@@ -340,6 +352,7 @@ function RegistrosPage() {
   const abrirEdicaoRegistro = (reg: Registro) => {
     setRegistroSelecionado(reg);
     setTexto(reg.registro || '');
+    textoOriginalRef.current = reg.registro || '';
     setModoModal('edit');
     setConfirmandoDelete(false);
     setModalRegistroAberto(true);
@@ -348,6 +361,7 @@ function RegistrosPage() {
   const abrirVisualizacaoRegistro = (reg: Registro) => {
     setRegistroSelecionado(reg);
     setTexto(reg.registro || '');
+    textoOriginalRef.current = reg.registro || '';
     setModoModal('view');
     setConfirmandoDelete(false);
     setModalRegistroAberto(true);
@@ -388,6 +402,13 @@ function RegistrosPage() {
       setDeletando(false);
     }
   };
+
+  const isNovo = !registroSelecionado;
+  const textoAtualNormalizado = texto.trim();
+  const textoOriginalNormalizado = textoOriginalRef.current.trim();
+  const textoFoiAlterado = isNovo
+    ? textoAtualNormalizado.length > 0
+    : textoAtualNormalizado !== textoOriginalNormalizado;
 
   return (
     <>
@@ -493,8 +514,8 @@ function RegistrosPage() {
       <Modal
         isOpen={modalRegistroAberto}
         toggle={fecharModalRegistro}
-        centered
-        size="lg"
+        // centered
+        size="xl"
         backdrop={salvando || deletando ? 'static' : true}
         keyboard={!(salvando || deletando)}
       >
@@ -533,7 +554,20 @@ function RegistrosPage() {
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
                 placeholder="Registre seu estado mental ao redor do sonho."
-                style={{ resize: 'none', minHeight: 220, paddingRight: '140px' }}
+                className="border-0 shadow-none bg-transparent"
+                style={{
+                  cursor: 'text',
+                  color: '#212529',
+                  backgroundColor: 'transparent',
+                  padding: '6px 0',
+                  minHeight: 400,
+                  width: '100%',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '1rem',
+                  resize: 'none',
+                  paddingRight: '140px',
+                }}
                 disabled={salvando}
               />
               <div className="position-absolute" style={{ top: '12px', right: '12px' }}>
@@ -607,30 +641,40 @@ function RegistrosPage() {
             </>
           ) : (
             <>
-              <Button
-                color="dark"
-                onClick={() => {
-                  // Se está editando um registro existente, volta para view no mesmo modal
-                  if (registroSelecionado) {
-                    setModoModal('view');
-                    setConfirmandoDelete(false);
-                    setTexto(registroSelecionado.registro || '');
-                    return;
-                  }
-                  // Se é um novo, fecha
-                  fecharModalRegistro();
-                }}
-                disabled={salvando}
-              >
-                {registroSelecionado ? 'Visualizar' : 'Cancelar'}
-              </Button>
-              <Button
-                color="dark"
-                onClick={handleSalvar}
-                disabled={salvando || !texto.trim()}
-              >
-                {salvando ? <Spinner size="sm" /> : 'Salvar Registro'}
-              </Button>
+              <div />
+
+              <div className="d-flex align-items-center gap-2">
+                {registroSelecionado && (
+                  <Button
+                    color="link"
+                    className="p-0 text-muted"
+                    title="Visualizar"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setModoModal('view');
+                      setConfirmandoDelete(false);
+                    }}
+                    style={{ textDecoration: 'none' }}
+                    disabled={salvando}
+                    aria-label="Visualizar"
+                  >
+                    <FiEye size={18} />
+                  </Button>
+                )}
+
+                <Button
+                  color="link"
+                  className="p-0 text-success"
+                  title="Salvar"
+                  onClick={handleSalvar}
+                  disabled={salvando || !textoFoiAlterado}
+                  style={{ textDecoration: 'none' }}
+                  aria-label="Salvar"
+                >
+                  {salvando ? <Spinner size="sm" /> : <FiCheck size={20} />}
+                </Button>
+              </div>
             </>
           )}
         </ModalFooter>
