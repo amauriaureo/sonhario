@@ -92,7 +92,7 @@ function Dashboard() {
   if (!usuario) return null;
 
   return (
-    <div className="py-3 outsiderBrasil mb-4 shadow-sm">
+    <div className="py-1 outsiderBrasil mb-4 shadow-sm">
       <Container fluid>
         <Row className="align-items-center">
           <Col md={4}>
@@ -104,9 +104,9 @@ function Dashboard() {
             </span>
           </Col>
           <Col md={3} className="text-end">
-            <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
+            {/* <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
               {resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'Sem atividade'}
-            </Button>
+            </Button> */}
             <Button color="dark" size="sm" className="me-2" onClick={toggleModal}>
               Alterar senha
             </Button>

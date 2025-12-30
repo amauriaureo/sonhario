@@ -360,7 +360,7 @@ function RegistrosPage() {
             {carregando ? (
               <div className="text-center py-5"><Spinner color="primary" /></div>
             ) : (
-              <ListGroup className="border-0 bg-transparent">
+              <ListGroup className="border-0 bg-transparent" style={{ maxHeight: '500px', overflowY: 'auto' }}>
                 {registros.map(reg => (
                   <ListGroupItem 
                     key={reg.id} 
@@ -388,17 +388,12 @@ function RegistrosPage() {
             <Card className="shadow-sm border-0" style={{ minHeight: '500px' }}>
               <CardBody className="d-flex flex-column p-4">
                 <div className="mb-4">
-                  <h5 className="font-weight-bold" style={{ color: 'var(--marrom-escuro)' }}>
+                  <h5 className="font-weight-bold ms-1" style={{ color: 'var(--marrom-escuro)' }}>
                     {registroSelecionado ? 'Editando Registro' : 'Novo Registro'}
                   </h5>
                   {registroSelecionado && (
                     <small className="text-muted">
                       Criado em: {format(new Date(registroSelecionado.criado_em), "Pp", { locale: ptBR })}
-                    </small>
-                  )}
-                  {!registroSelecionado && (
-                    <small className="text-muted">
-                      Registre seu estado mental ao redor do sonho
                     </small>
                   )}
                 </div>
@@ -408,8 +403,8 @@ function RegistrosPage() {
                     type="textarea"
                     value={texto}
                     onChange={(e) => setTexto(e.target.value)}
-                    placeholder="Descreva aqui seu sonho ou pensamento..."
-                    className="registro-textarea h-100"
+                    placeholder="Registre seu estado mental ao redor do sonho."
+                    className=""
                     style={{ resize: 'none', paddingRight: '140px' }}
                   />
                   <div
