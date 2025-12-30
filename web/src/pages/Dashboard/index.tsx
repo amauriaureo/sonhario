@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Alert, Spinner } from 'reactstrap';
 import api from '../../services/api';
+import { FiPlus } from 'react-icons/fi';
 
 interface Usuario {
   nome: string;
@@ -12,9 +13,8 @@ interface Resumo {
   ultimaAtividade: string | null;
 }
 
-function Dashboard() {
+function Dashboard({ abrirNovoRegistro }: { abrirNovoRegistro: () => void }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [resumo, setResumo] = useState<Resumo>({ total: 0, ultimaAtividade: null });
   const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
@@ -27,26 +27,11 @@ function Dashboard() {
     const usuarioSalvo = localStorage.getItem('usuario');
     if (usuarioSalvo) {
       setUsuario(JSON.parse(usuarioSalvo));
-      fetchResumo();
     } else {
       navigate('/');
     }
   }, [navigate]);
 
-  const fetchResumo = async () => {
-    try {
-      const response = await api.get('/registros', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const registros = response.data;
-      setResumo({
-        total: registros.length,
-        ultimaAtividade: registros.length > 0 ? registros[0].criado_em : null
-      });
-    } catch (err) {
-      console.error("Erro ao buscar resumo:", err);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -107,6 +92,10 @@ function Dashboard() {
             {/* <Button color="dark" size="sm" className="me-2" disabled style={{ opacity: 0.8 }}>
               {resumo.ultimaAtividade ? new Date(resumo.ultimaAtividade).toLocaleDateString() : 'Sem atividade'}
             </Button> */}
+            <Button color="dark" size="sm" className="me-2" onClick={abrirNovoRegistro}>
+              <FiPlus className="me-2" />
+              Novo 
+            </Button>
             <Button color="dark" size="sm" className="me-2" onClick={toggleModal}>
               Alterar senha
             </Button>

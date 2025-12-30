@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../services/api';
 import Dashboard from '../Dashboard'; // Usaremos o Dashboard como cabeçalho
-import { FiEdit2, FiTrash2, FiPlus, FiEye, FiCheck, FiMic } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiEye, FiCheck, FiMic, FiPause, FiPlay } from 'react-icons/fi';
 
 interface Registro {
   id: string;
@@ -331,15 +331,15 @@ const TranscricaoRegistros = ({
                 <div className="d-flex gap-2">
                   {gravando && (
                     <Button
-                      color={pausado ? 'success' : 'warning'}
-                      outline
+                      color="link"
+                      className="p-0 text-muted"
                       size="sm"
                       onClick={pausado ? retomarGravacao : pausarGravacao}
+                      title={pausado ? 'Retomar' : 'Pausar'}
+                      aria-label={pausado ? 'Retomar' : 'Pausar'}
+                      style={{ textDecoration: 'none' }}
                     >
-                      <i
-                        className={pausado ? 'ri-play-line me-1' : 'ri-pause-line me-1'}
-                      ></i>
-                      {pausado ? 'Retomar' : 'Pausar'}
+                      {pausado ? <FiPlay size={18} /> : <FiPause size={18} />}
                     </Button>
                   )}
                 </div>
@@ -355,11 +355,15 @@ const TranscricaoRegistros = ({
               />
 
               <div className="d-flex justify-content-end gap-2 mt-3">
-                <Button color="secondary" onClick={cancelar}>
-                  Cancelar
-                </Button>
-                <Button color="success" onClick={confirmar}>
-                  Inserir no registro
+                <Button
+                  color="link"
+                  className="p-0 text-success"
+                  onClick={confirmar}
+                  title="Inserir no registro"
+                  aria-label="Inserir no registro"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <FiCheck size={20} />
                 </Button>
               </div>
             </>
@@ -499,20 +503,14 @@ function RegistrosPage() {
 
   return (
     <>
-      <Dashboard />
+      <Dashboard abrirNovoRegistro={abrirNovoRegistro} />
       <Container fluid className="px-3 py-4">
         <div className="mx-auto" style={{ maxWidth: 1200 }}>
           {erro && <Alert color="danger">{erro}</Alert>}
 
           <div className="d-flex align-items-center justify-content-between mb-3">
             <div>
-              <h4 className="mb-0" style={{ color: 'var(--marrom-escuro)' }}>Meus Sonhos</h4>
-              <small className="text-muted">Clique em um card para visualizar. Use os ícones para editar/deletar.</small>
             </div>
-            <Button color="dark" onClick={abrirNovoRegistro}>
-              <FiPlus className="me-2" />
-              Novo Registro
-            </Button>
           </div>
 
           <Row className="g-3">
@@ -631,7 +629,7 @@ function RegistrosPage() {
           )}
 
           {modoModal === 'view' ? (
-            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, height: 400, overflowY: 'auto' }}>
               {registroSelecionado?.registro || ''}
             </div>
           ) : (
