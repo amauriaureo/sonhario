@@ -16,10 +16,18 @@ interface Registro {
 interface TranscricaoRegistrosProps {
   onApply: (texto: string) => void;
   disabled?: boolean;
+  currentText?: string;
 }
 
-const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistrosProps) => {
+const TranscricaoRegistros = ({
+  onApply,
+  disabled = false,
+  currentText = '',
+}: TranscricaoRegistrosProps) => {
   const [modalAberto, setModalAberto] = useState(false);
+  const [etapa, setEtapa] = useState<'choose' | 'record'>('record');
+  const [modoAplicacao, setModoAplicacao] = useState<'replace' | 'append'>('replace');
+  const baseTextRef = useRef<string>('');
   const [gravando, setGravando] = useState(false);
   const [pausado, setPausado] = useState(false);
   const [transcricaoTemp, setTranscricaoTemp] = useState('');
@@ -152,7 +160,7 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
     }
     iniciarRestartPeriodico();
     setGravando(true);
-    setModalAberto(true);
+    setEtapa('record');
   };
 
   const pausarGravacao = () => {
@@ -183,7 +191,18 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
   const cancelar = () => {
     encerrarReconhecimento();
     setModalAberto(false);
+    setEtapa('record');
+    setModoAplicacao('replace');
+    baseTextRef.current = '';
     limparEstados();
+  };
+
+  const juntarTexto = (base: string, extra: string) => {
+    const b = (base || '').trim();
+    const e = (extra || '').trim();
+    if (!b) return e;
+    if (!e) return b;
+    return `${b}\n\n${e}`;
   };
 
   const confirmar = () => {
@@ -196,11 +215,19 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
 
     encerrarReconhecimento();
 
-    if (textoAtual.trim()) {
-      onApply(textoAtual.trim());
+    const transcrito = (textoAtual || '').trim();
+    if (transcrito) {
+      if (modoAplicacao === 'append') {
+        onApply(juntarTexto(baseTextRef.current, transcrito));
+      } else {
+        onApply(transcrito);
+      }
     }
 
     setModalAberto(false);
+    setEtapa('record');
+    setModoAplicacao('replace');
+    baseTextRef.current = '';
     limparEstados();
   };
 
@@ -232,7 +259,23 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
         color="link"
         className="p-0 text-muted"
         disabled={disabled}
-        onClick={iniciarGravacao}
+        onClick={() => {
+          if (disabled) return;
+
+          const temConteudo = (currentText || '').trim().length > 0;
+          setModalAberto(true);
+
+          if (temConteudo) {
+            // Mostra escolha dentro do próprio modal
+            setEtapa('choose');
+          } else {
+            // Sem conteúdo: comportamento atual (substituir)
+            baseTextRef.current = '';
+            setModoAplicacao('replace');
+            setEtapa('record');
+            iniciarGravacao();
+          }
+        }}
         title="Gravar"
         aria-label="Gravar"
         style={{ textDecoration: 'none' }}
@@ -243,40 +286,84 @@ const TranscricaoRegistros = ({ onApply, disabled = false }: TranscricaoRegistro
       <Modal isOpen={modalAberto} toggle={cancelar} centered size="lg">
         <ModalHeader toggle={cancelar}>Transcrição por voz</ModalHeader>
         <ModalBody>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <div className="fw-bold">Tempo: {formatarTempo(tempo)}</div>
-            <div className="d-flex gap-2">
-              {gravando && (
+          {etapa === 'choose' ? (
+            <div className="py-3">
+              <div className="mb-3">
+                <div className="fw-semibold mb-1">
+                  Você deseja substituir o registro ou adicionar mais detalhes?
+                </div>
+                <div className="text-muted small">
+                  Essa escolha não salva automaticamente — apenas define como a transcrição será inserida no editor.
+                </div>
+              </div>
+
+              <div className="d-flex justify-content-end gap-2">
                 <Button
-                  color={pausado ? 'success' : 'warning'}
-                  outline
-                  size="sm"
-                  onClick={pausado ? retomarGravacao : pausarGravacao}
+                  color="secondary"
+                  onClick={() => {
+                    // Substitui: comportamento atual
+                    baseTextRef.current = '';
+                    setModoAplicacao('replace');
+                    setEtapa('record');
+                    iniciarGravacao();
+                  }}
                 >
-                  <i className={pausado ? 'ri-play-line me-1' : 'ri-pause-line me-1'}></i>
-                  {pausado ? 'Retomar' : 'Pausar'}
+                  Substituir
                 </Button>
-              )}
+                <Button
+                  color="dark"
+                  onClick={() => {
+                    // Adiciona: concatena com o texto do editor no momento do clique
+                    baseTextRef.current = currentText || '';
+                    setModoAplicacao('append');
+                    setEtapa('record');
+                    iniciarGravacao();
+                  }}
+                >
+                  Adicionar mais detalhes
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="fw-bold">Tempo: {formatarTempo(tempo)}</div>
+                <div className="d-flex gap-2">
+                  {gravando && (
+                    <Button
+                      color={pausado ? 'success' : 'warning'}
+                      outline
+                      size="sm"
+                      onClick={pausado ? retomarGravacao : pausarGravacao}
+                    >
+                      <i
+                        className={pausado ? 'ri-play-line me-1' : 'ri-pause-line me-1'}
+                      ></i>
+                      {pausado ? 'Retomar' : 'Pausar'}
+                    </Button>
+                  )}
+                </div>
+              </div>
 
-          <Input
-            type="textarea"
-            rows={8}
-            value={pausado ? transcricaoEditada : transcricaoTemp || transcricaoFinal}
-            onChange={(e) => setTranscricaoEditada(e.target.value)}
-            disabled={gravando && !pausado}
-            placeholder="Fale e acompanhe a transcrição aqui. Você pode pausar para editar."
-          />
+              <Input
+                type="textarea"
+                rows={8}
+                value={pausado ? transcricaoEditada : transcricaoTemp || transcricaoFinal}
+                onChange={(e) => setTranscricaoEditada(e.target.value)}
+                disabled={gravando && !pausado}
+                placeholder="Fale e acompanhe a transcrição aqui. Você pode pausar para editar."
+              />
 
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button color="secondary" onClick={cancelar}>
-              Cancelar
-            </Button>
-            <Button color="success" onClick={confirmar}>
-              Inserir no registro
-            </Button>
-          </div>
+              <div className="d-flex justify-content-end gap-2 mt-3">
+                <Button color="secondary" onClick={cancelar}>
+                  Cancelar
+                </Button>
+                <Button color="success" onClick={confirmar}>
+                  Inserir no registro
+                </Button>
+              </div>
+            </>
+          )}
         </ModalBody>
       </Modal>
     </>
@@ -571,7 +658,11 @@ function RegistrosPage() {
                 disabled={salvando}
               />
               <div className="position-absolute" style={{ top: '12px', right: '12px' }}>
-                <TranscricaoRegistros onApply={aplicarTranscricao} disabled={salvando} />
+                <TranscricaoRegistros
+                  onApply={aplicarTranscricao}
+                  disabled={salvando}
+                  currentText={texto}
+                />
               </div>
             </div>
           )}
