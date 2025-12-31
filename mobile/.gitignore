@@ -1,28 +1,55 @@
-# Arquivos de configuração de ambiente (NÃO ENVIAR)
-.env
-.env.*
-!.env.example
-
-# Pasta do Expo que armazena cache e configurações locais
-.expo/
-
 # Dependências
 node_modules/
 
-# Logs
-logs/
-*.log
+# Expo e Metro
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
 
-# Pastas de build do Android e iOS
-/android/build/
-/android/app/build/
-/android/.gradle/
-/ios/build/
-/ios/Pods/
+# Segurança e Chaves Nativas (MUITO IMPORTANTE)
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
 
-# Arquivos gerados pelo sistema operacional
+# Configurações de Ambiente (Segurança de Credenciais)
+.env
+.env.local
+.env.*.local
+
+# Logs de Erro e Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+lerna-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Pastas nativas geradas
+/ios
+/android
+
+# Arquivos do Sistema Operacional
 .DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
 
-# Arquivos de configuração de editores de código
+# Arquivos de Editores de Código
+.vscode/
 .idea/
-
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
