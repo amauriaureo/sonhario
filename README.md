@@ -1,79 +1,212 @@
-É uma excelente ideia. Ter um arquivo de documentação (como um README.md) é uma prática profissional essencial para que você não se perca no futuro ou para quando precisar configurar o projeto em outra máquina.
-Aqui está o compilado técnico de tudo o que construímos até agora:
+## Projeto Sonhário
+
+Aplicação fullstack para registro de sonhos, composta por:
+
+- **Backend**: Node.js + Express + PostgreSQL (Supabase) em `api/`
+- **Frontend Web**: React + Vite + TypeScript em `web/`
+- (Opcional) **Mobile**: estrutura inicial em `mobile/` (Expo)
+
+Este README descreve como qualquer desenvolvedor pode clonar o repositório, configurar o banco de dados no Supabase e rodar o projeto localmente.
 
 ---
 
-📑 Documentação Técnica: Projeto Sonhário
+## 1. Pré‑requisitos
 
-1. Banco de Dados (Supabase & PostgreSQL)
-   O banco está hospedado no Supabase, utilizando UUID para chaves primárias e Transaction Pooler para compatibilidade com redes IPv4.
-   • Configuração de Conexão (Pooler):
-   o Host: aws-1-us-east-1.pooler.supabase.com
-   o Porta: 6543
-   o Usuário: postgres.nbegyeyudbmeswqysejl
-   • Comandos SQL Iniciais:
-   SQL
-   CREATE TABLE usuarios (
-   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-   nome TEXT NOT NULL,
-   email TEXT UNIQUE NOT NULL,
-   senha TEXT NOT NULL,
-   criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
+- **Git**
+- **Node.js** (recomendado ≥ 18.x)
+- **npm** (vem com o Node)
+- Conta no **Supabase** (gratuita)
+- Opcional: **DBeaver / TablePlus / psql** para inspecionar o banco
+
+Verifique se o Node está instalado:
+
+```bash
+node -v
+npm -v
+```
 
 ---
 
-2. Backend (Node.js + Express)
-   Localizado na pasta /api, o servidor faz a ponte segura com o banco de dados.
-   • Instalação de Dependências:
-   Bash
-   npm install express pg dotenv cors
-   npm install --save-dev nodemon
-   • Variáveis de Ambiente (.env):
-   o Nota: Caracteres especiais na senha como @ e $ devem ser convertidos para URL Encode (%40 e %24).
-   • Comando para Iniciar:
-   Bash
+## 2. Clonar o repositório
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd sonhario
+```
+
+> Substitua `<URL_DO_REPOSITORIO>` pela URL HTTPS ou SSH deste projeto.
+
+---
+
+## 3. Configurar o banco de dados (Supabase)
+
+### 3.1 Criar o projeto no Supabase
+
+1. Acesse o painel do Supabase e crie um novo projeto.
+2. Anote:
+   - **Project URL**
+   - **Anon/Publishable key** (para uso futuro no front, se necessário)
+   - **Connection string** do banco (PostgreSQL).
+3. Em **Project Settings → Database → Connection String → Direct connection**, copie a string `postgresql://...` (ela será usada como `DATABASE_URL`).
+4. Em **Project Settings → Database → Password**, veja/reset a **senha do banco** (é a senha usada na URL).
+
+### 3.2 Criar as tabelas necessárias
+
+No painel do Supabase, vá em **SQL Editor**, crie um novo script e execute o SQL abaixo para criar as tabelas que a API espera:
+
+```sql
+-- Tabela de usuários
+create table if not exists public.usuarios (
+  id serial primary key,
+  nome text not null,
+  email text not null unique,
+  senha text not null
+);
+
+-- Tabela de registros de sonhos
+create table if not exists public.registros (
+  id serial primary key,
+  id_usuario integer not null references public.usuarios(id) on delete cascade,
+  registro text not null,
+  criado_em timestamp with time zone not null default now(),
+  data_alteracao timestamp with time zone[] not null default array[now()]
+);
+```
+
+Após executar, você deve ver as tabelas `usuarios` e `registros` no **Table Editor** do Supabase.
+
+---
+
+## 4. Backend (`api/`)
+
+O backend é um servidor Express que faz a ponte entre o front e o banco PostgreSQL hospedado no Supabase.
+
+### 4.1 Instalar dependências
+
+```bash
+cd api
+npm install
+```
+
+> As principais dependências incluem: `express`, `pg`, `dotenv`, `cors`, `bcrypt`, `jsonwebtoken`, `morgan`, `nodemailer`.
+
+### 4.2 Configurar variáveis de ambiente
+
+Crie um arquivo `.env` dentro da pasta `api/` com o seguinte formato (exemplo):
+
+```env
+DATABASE_URL=postgresql://postgres:SUA_SENHA_AQUI@db.SEUPROJETO.supabase.co:5432/postgres
+PORT=3000
+JWT_SECRET=um-segredo-bem-forte-aqui
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=seu-email@gmail.com
+EMAIL_PASS='sua-senha-de-app-ou-token'
+```
+
+Notas importantes:
+
+- **DATABASE_URL**: copie exatamente a `Direct connection string` do Supabase e apenas substitua `[YOUR-PASSWORD]` pela senha real do banco.
+- Se a senha tiver caracteres especiais (`@`, `$`, `!`, etc.), normalmente o Supabase já traz a URL com **URL encode** aplicado (ex.: `@` → `%40`). Não altere.
+- **JWT_SECRET**: pode ser qualquer string longa e difícil de adivinhar.
+- As variáveis de e‑mail são usadas para envio de reset de senha. Se não quiser enviar e‑mail em desenvolvimento, pode manter valores falsos e adaptar o código.
+
+### 4.3 Rodar o backend em desenvolvimento
+
+Ainda dentro de `api/`:
+
+```bash
+npm run dev
+```
+
+O servidor sobe por padrão em `http://localhost:3000`.  
+Exemplos de rotas:
+
+- `POST /usuarios/registrar` – cria usuário
+- `POST /usuarios/login` – login com JWT
+- `GET /usuarios` – lista usuários (para testes)
+- `POST /registros` – cria registro (autenticado)
+- `GET /registros` – lista registros (autenticado)
+
+---
+
+## 5. Frontend Web (`web/`)
+
+Aplicação React + Vite + TypeScript, responsável pela interface web.
+
+### 5.1 Instalar dependências
+
+```bash
+cd web
+npm install
+```
+
+Principais libs:
+
+- `react`, `react-dom`, `react-router-dom`
+- `bootstrap`, `reactstrap`
+- `axios`
+
+Certifique‑se de que o CSS global do Bootstrap está sendo importado em `main.tsx`:
+
+```ts
+import "bootstrap/dist/css/bootstrap.min.css";
+```
+
+### 5.2 Rodar o frontend em desenvolvimento
+
+Na pasta `web/`:
+
+```bash
+npm run dev
+```
+
+O Vite normalmente sobe em `http://localhost:5173` (a porta exata aparece no terminal).  
+Certifique‑se de que as URLs que o front usa para chamar a API apontam para `http://localhost:3000` (ou para a porta que você configurou no backend).
+
+---
+
+## 6. Rodando tudo junto
+
+Em terminais separados:
+
+1. **Backend**:
+   ```bash
+   cd api
    npm run dev
-
----
-
-3. Frontend Web (React + Vite + TypeScript)
-   Localizado na pasta /web, focado em interface responsiva com Reactstrap.
-   • Tecnologias: React v19, Vite v7, TypeScript e Bootstrap 5.
-   • Instalação de Dependências:
-   Bash
-   npm install bootstrap reactstrap axios
-   • Configuração Global:
-   o Importação obrigatória em main.tsx: import 'bootstrap/dist/css/bootstrap.min.css';
-   • Comando para Iniciar:
-   Bash
+   ```
+2. **Frontend**:
+   ```bash
+   cd web
    npm run dev
+   ```
+
+Acesse a aplicação web no navegador (porta do Vite) e certifique‑se de que o backend está ativo para que login, cadastro e registros funcionem.
 
 ---
 
-4. Gerenciamento de Ambiente (Node.js)
-   Utilizamos o NVM para garantir a compatibilidade com as ferramentas mais recentes de 2025.
-   • Versão Utilizada: Node v25.2.1 (ou superior).
-   • Comandos NVM:
-   PowerShell
-   nvm install latest
-   nvm use 25.2.1
+## 7. Acesso ao banco via Workbench (opcional)
+
+Se quiser acessar o banco do Supabase via DBeaver ou outro cliente PostgreSQL, use os dados da conexão direta (`Direct connection`):
+
+- **Host**: `db.SEUPROJETO.supabase.co`
+- **Porta**: `5432`
+- **Database**: `postgres`
+- **Usuário**: `postgres`
+- **Senha**: senha do banco (mesma da `DATABASE_URL`)
+- **SSL**: habilitado (`sslmode=require` ou equivalente)
+
+No DBeaver, crie uma nova conexão PostgreSQL, preencha os campos acima, habilite SSL e teste a conexão.
 
 ---
 
-5. Resumo de Comandos de Terminal (Windows)
-   • cd nome-da-pasta: Acessar diretório.
-   • code .: Abrir pasta atual no VS Code.
-   • node -v: Verificar versão do Node.
-   • npm run dev: Comando padrão que configuramos para rodar tanto API quanto Web em modo de desenvolvimento.
+## 8. Dicas rápidas de terminal (Windows)
+
+- `cd nome-da-pasta` – acessar diretório.
+- `code .` – abrir pasta atual no VS Code / Cursor.
+- `node -v` – verificar versão do Node.
+- `npm install` – instalar dependências.
+- `npm run dev` – rodar projeto em modo desenvolvimento (backend ou frontend, dependendo da pasta).
 
 ---
-
-Próximos Passos Sugeridos:
-Agora que a base está documentada e funcionando, os próximos marcos do seu roadmap são:
-
-1. Criptografia de Senhas: Instalar bcrypt no backend para não salvar senhas reais.
-2. Formulário de Cadastro: Criar a tela no React para enviar dados para a API.
-3. Sistema de Login: Implementar autenticação com JWT (JSON Web Token).
-4. Início do Mobile: Configurar a pasta /mobile com Expo e React Native.
-   Gostaria que eu te ajudasse a criar o primeiro formulário de cadastro na Web para testarmos a inserção de dados pelo navegador?
