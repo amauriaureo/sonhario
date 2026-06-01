@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../../services/api';
 import Dashboard from '../Dashboard'; // Usaremos o Dashboard como cabeçalho
-import { FiEdit2, FiTrash2, FiEye, FiCheck, FiMic, FiPause, FiPlay } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiEye, FiCheck, FiMic, FiPause, FiPlay, FiZap } from 'react-icons/fi';
 
 interface Registro {
   id: string;
@@ -381,6 +381,7 @@ function RegistrosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [melhorandoIA, setMelhorandoIA] = useState(false);
   const [deletando, setDeletando] = useState(false);
   const [erro, setErro] = useState('');
   const [modalRegistroAberto, setModalRegistroAberto] = useState(true);
@@ -429,6 +430,26 @@ function RegistrosPage() {
       setErro('Erro ao salvar o registro.');
     } finally {
       setSalvando(false);
+    }
+  };
+
+  const handleMelhorarComIA = async () => {
+    if (!texto.trim() || texto.trim().length < 5) {
+      setErro('Escreva um pouco mais para que a IA possa melhorar o relato.');
+      return;
+    }
+    setMelhorandoIA(true);
+    setErro('');
+    try {
+      const response = await api.post('/registros/melhorar', { registro: texto }, config);
+      if (response.data && response.data.registroMelhorado) {
+        setTexto(response.data.registroMelhorado);
+      }
+    } catch (err: any) {
+      console.error('Erro ao melhorar com IA:', err);
+      setErro(err.response?.data?.error || 'Erro ao comunicar com a IA.');
+    } finally {
+      setMelhorandoIA(false);
     }
   };
 
@@ -683,10 +704,24 @@ function RegistrosPage() {
                 }}
                 disabled={salvando}
               />
-              <div className="position-absolute" style={{ top: '12px', right: '12px' }}>
+              <div className="position-absolute d-flex gap-2" style={{ top: '12px', right: '12px' }}>
+                <Button
+                  color="link"
+                  className="p-0 text-primary"
+                  onClick={handleMelhorarComIA}
+                  disabled={melhorandoIA || salvando}
+                  title="Melhorar com IA"
+                  style={{ textDecoration: 'none' }}
+                >
+                  {melhorandoIA ? (
+                    <Spinner size="sm" color="primary" />
+                  ) : (
+                    <FiZap size={18} />
+                  )}
+                </Button>
                 <TranscricaoRegistros
                   onApply={aplicarTranscricao}
-                  disabled={salvando}
+                  disabled={salvando || melhorandoIA}
                   currentText={texto}
                 />
               </div>
