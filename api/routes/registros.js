@@ -2,9 +2,34 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const verificarToken = require("../middleware/verificarToken");
+const { melhorarDescricaoSonho } = require("../aiService");
 
 // Middleware aplicado a todas as rotas deste arquivo
 router.use(verificarToken);
+
+// Rota para MELHORAR a descrição de um sonho usando IA
+router.post("/melhorar", async (req, res) => {
+  const { registro } = req.body;
+
+  if (!registro) {
+    return res
+      .status(400)
+      .json({ error: "O campo registro é obrigatório para melhoria." });
+  }
+
+  try {
+    const registroMelhorado = await melhorarDescricaoSonho(registro);
+    res.json({ registroMelhorado });
+  } catch (err) {
+    console.error("Erro ao melhorar registro com IA:", err.message);
+    res
+      .status(500)
+      .json({
+        error: "Erro ao processar melhoria com IA.",
+        detail: err.message,
+      });
+  }
+});
 
 // Rota para CRIAR um novo registro
 router.post("/", async (req, res) => {
