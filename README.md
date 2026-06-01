@@ -4,7 +4,6 @@ Aplicação fullstack para registro de sonhos, composta por:
 
 - **Backend**: Node.js + Express + PostgreSQL (Supabase) em `api/`
 - **Frontend Web**: React + Vite + TypeScript em `web/`
-- (Opcional) **Mobile**: estrutura inicial em `mobile/` (Expo)
 
 Este README descreve como qualquer desenvolvedor pode clonar o repositório, configurar o banco de dados no Supabase e rodar o projeto localmente.
 
